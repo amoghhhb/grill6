@@ -328,10 +328,8 @@ export default function Navbar() {
                 transition={{ duration: 0.15, ease: "linear" }}
                 style={{ display: 'flex', marginRight: '1.2rem' }}
               >
-                <button className="btn-icon" onClick={() => router.push('/menu')}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="icon">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
+                <button className="btn-icon" onClick={() => router.push('/menu')} style={{ width: 'auto', padding: '0 0.5rem' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.05em', color: '#000000' }}>MENU</span>
                 </button>
               </motion.div>
             )}
