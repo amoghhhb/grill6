@@ -124,16 +124,14 @@ export default function SellerDashboard() {
     setIsUpdatingStatus(true);
     const newStatus = !isAcceptingOrders;
     try {
-      // 1. Update private user metadata for the seller's session
-      await supabase.auth.updateUser({
-        data: { is_open: newStatus }
-      });
-
-      // 2. Update public profiles table so customers can see it
+      // Update global settings table instead of individual profile
       const { error } = await supabase
-        .from('profiles')
-        .update({ is_open: newStatus })
-        .eq('id', user.id);
+        .from('settings')
+        .upsert({ 
+          key: 'outlet_status', 
+          value: { is_open: newStatus },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
       
       if (error) throw error;
       
@@ -148,11 +146,33 @@ export default function SellerDashboard() {
     }
   };
 
-  useEffect(() => {
-    if (user?.user_metadata) {
-      setIsAcceptingOrders(user.user_metadata.is_open ?? true);
+  const fetchInitialStatus = async () => {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'outlet_status')
+      .maybeSingle();
+    
+    if (data?.value) {
+      setIsAcceptingOrders(data.value.is_open);
     }
-  }, [user]);
+  };
+
+  useEffect(() => {
+    fetchInitialStatus();
+
+    // Listen for global status changes
+    const channel = supabase
+      .channel('global-outlet-sync')
+      .on('postgres_changes', { event: '*', table: 'settings', filter: 'key=eq.outlet_status' }, (payload: any) => {
+        if (payload.new?.value) {
+          setIsAcceptingOrders(payload.new.value.is_open);
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   const fetchCategories = async () => {
     if (!user?.id) return;

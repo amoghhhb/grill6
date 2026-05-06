@@ -94,18 +94,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const fetchOutletStatus = async () => {
     try {
-      // Look for the main Grill 6 profile (usually the first seller or admin)
       const { data, error } = await supabase
-        .from('profiles')
-        .select('is_open')
-        .or('role.eq.seller,role.eq.admin')
-        .eq('is_open', false) // Find if anyone is CLOSED
-        .limit(1);
+        .from('settings')
+        .select('value')
+        .eq('key', 'outlet_status')
+        .maybeSingle();
       
-      if (data && data.length > 0) {
-        setIsOutletOpen(false); // If we found any closed outlet, platform is closed
+      if (data?.value) {
+        setIsOutletOpen(data.value.is_open);
       } else {
-        setIsOutletOpen(true);
+        setIsOutletOpen(true); // Default to open if setting doesn't exist
       }
     } catch (err) {
       console.error("Error fetching outlet status:", err);
