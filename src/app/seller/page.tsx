@@ -586,6 +586,9 @@ export default function SellerDashboard() {
           <button className={`${styles.navBtn} ${activeTab === 'menu' ? styles.active : ''}`} onClick={() => setActiveTab('menu')}>
             Menu Manager
           </button>
+          <button className={`${styles.navBtn} ${activeTab === 'categories' ? styles.active : ''}`} onClick={() => setActiveTab('categories')}>
+            Category Manager
+          </button>
           <button className={`${styles.navBtn} ${activeTab === 'coupons' ? styles.active : ''}`} onClick={() => setActiveTab('coupons')}>
             Coupon Manager
           </button>
@@ -744,6 +747,76 @@ export default function SellerDashboard() {
               </div>
             )}
           </div>
+        )}
+
+        {activeTab === 'categories' && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={styles.card}
+          >
+            <div className={styles.sectionHeader}>
+              <h3>📂 Category Management</h3>
+            </div>
+
+            <div className={styles.categoryManagerBody} style={{ padding: '1rem' }}>
+              <p style={{ color: 'var(--accent)', marginBottom: '1.5rem' }}>
+                Create and organize categories to structure your menu for customers.
+              </p>
+              
+              <div className={styles.addCategoryRow}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>New Category Name</label>
+                  <input 
+                    type="text" 
+                    placeholder="e.g. Italian Special, Breakfast, etc." 
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    className={styles.modalInput}
+                    style={{ width: '100%' }}
+                  />
+                </div>
+                <button 
+                  onClick={handleAddCategory}
+                  disabled={isAddingCategory || !newCategoryName.trim()}
+                  className={styles.saveBtn}
+                  style={{ height: '42px', padding: '0 2rem' }}
+                >
+                  {isAddingCategory ? 'Adding...' : 'Add Category'}
+                </button>
+              </div>
+
+              <div className={styles.categoryList} style={{ marginTop: '2rem' }}>
+                <h4 style={{ marginBottom: '1.5rem' }}>Active Categories</h4>
+                {isLoadingCategories ? (
+                  <div className={styles.loader}></div>
+                ) : categories.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--secondary)', borderRadius: '12px' }}>
+                    <p style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>No custom categories yet.</p>
+                    <p style={{ color: 'var(--accent)', opacity: 0.7, fontSize: '0.9rem' }}>Add your first category above to start organizing your menu.</p>
+                  </div>
+                ) : (
+                  <div className={styles.categoryItemsGrid}>
+                    {categories.map(cat => (
+                      <div key={cat.id} className={styles.categoryItemRow}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                          <span style={{ fontSize: '1.2rem' }}>📂</span>
+                          <span>{cat.name}</span>
+                        </div>
+                        <button 
+                          onClick={() => handleDeleteCategory(cat.id)}
+                          className={styles.deleteIconBtn}
+                          title="Delete Category"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
 
         {activeTab === 'coupons' && (
@@ -1039,23 +1112,6 @@ export default function SellerDashboard() {
                 <button className={styles.closeBtn} onClick={() => setShowAddModal(false)}>×</button>
               </div>
               <form onSubmit={handleAddDish} className={styles.modalForm}>
-              <div className={styles.sectionHeader}>
-                <h3>Menu Management</h3>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button 
-                    className={styles.addCategoryBtn}
-                    onClick={() => setShowCategoryModal(true)}
-                  >
-                    📂 Manage Categories
-                  </button>
-                  <button 
-                    className={styles.addDishBtn}
-                    onClick={() => setShowAddModal(true)}
-                  >
-                    + Add New Dish
-                  </button>
-                </div>
-              </div>
                 <div className={styles.formGroup}>
                   <label>Dish Name</label>
                   <input 
