@@ -6,6 +6,7 @@ import { AnimatePresence } from 'framer-motion';
 import EmailModal from '@/components/EmailModal/EmailModal';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
+import AnimatedMenuIcon from '@/components/Icons/AnimatedMenuIcon';
 import { 
   PieChart, 
   Pie, 
@@ -807,11 +808,8 @@ export default function SellerDashboard() {
                           >
                             <div className={styles.categoryInfo}>
                               <div className={styles.categoryIcon}>
-                                {cat.name.toLowerCase().includes('burger') ? '🍔' : 
-                                 cat.name.toLowerCase().includes('drink') ? '🥤' :
-                                 cat.name.toLowerCase().includes('pizza') ? '🍕' :
-                                 cat.name.toLowerCase().includes('dessert') ? '🍰' : '📂'}
-                              </div>
+                              <AnimatedMenuIcon size={24} color="#000000" />
+                            </div>
                               <span className={styles.categoryName}>{cat.name}</span>
                             </div>
                             <button 
