@@ -8,6 +8,7 @@ import { useGSAP } from '@gsap/react';
 import dynamic from 'next/dynamic';
 import styles from './OrderTypeModal.module.css';
 import { useCart } from '@/context/CartContext';
+import { supabase } from '@/lib/supabase';
 
 // Dynamic import for Leaflet map to disable SSR
 const LocationMap = dynamic(() => import('./LocationMap'), { ssr: false, loading: () => <p style={{textAlign:'center', padding:'2rem'}}>Loading map...</p> });
