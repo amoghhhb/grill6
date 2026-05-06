@@ -1,0 +1,386 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  position: relative;
+}
+
+.contentBlurred {
+  display: flex; /* Restore flex layout for sidebar and feed */
+  gap: 3rem;
+  align-items: flex-start;
+  filter: blur(10px);
+  pointer-events: none;
+  transition: filter 0.3s ease;
+}
+
+.contentNormal {
+  display: flex;
+  gap: 3rem;
+  align-items: flex-start;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  width: 250px;
+  position: sticky;
+  top: 100px; /* Below Navbar */
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+
+.hiddenRadio {
+  display: none;
+}
+
+.filterLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--accent);
+  user-select: none;
+}
+
+.filterLabel:hover {
+  color: var(--foreground);
+}
+
+.filterLabel:active {
+  transform: scale(0.95);
+}
+
+.activeFilter {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.vegIcon, .nonVegIcon {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid currentColor;
+  position: relative;
+  border-radius: 2px;
+}
+
+.vegIcon { color: var(--success); }
+.nonVegIcon { color: var(--destructive); }
+
+.vegIcon::after, .nonVegIcon::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.vegIcon::after {
+  width: 6px; height: 6px;
+  background-color: var(--success);
+}
+.nonVegIcon::after {
+  width: 6px; height: 6px;
+  background-color: transparent;
+  border: 3px solid var(--destructive); /* Zomato uses triangles sometimes, but simple circles also work */
+  border-radius: 0;
+  transform: translate(-50%, -50%) rotate(45deg); /* Simple triangle hack */
+  border-top: none; border-left: none; /* Just keep it simple as a circle for now */
+  border-radius: 50%; background-color: var(--destructive); border: none;
+}
+
+.categoryNav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.categoryBtn {
+  text-align: left;
+  background: transparent;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--accent);
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.categoryBtn:hover {
+  color: var(--primary);
+  background: var(--secondary);
+}
+
+.categoryBtn.active {
+  color: var(--primary);
+  font-weight: 700;
+  background: rgba(60, 141, 188, 0.05);
+}
+
+.activeBar {
+  position: absolute;
+  right: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 20px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+/* Menu Feed */
+.menuFeed {
+  flex: 1;
+}
+
+.sectionTitle {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  color: var(--foreground);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+}
+
+.cardImageGroup {
+  position: relative;
+  height: 180px;
+  width: 100%;
+}
+
+.cardImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cardImagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background: var(--secondary);
+}
+
+.vegBadge, .nonVegBadge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.vegBadge::after {
+  content: '';
+  width: 10px; height: 10px;
+  background: var(--success);
+  border-radius: 50%;
+}
+
+.nonVegBadge::after {
+  content: '';
+  width: 10px; height: 10px;
+  background: var(--destructive);
+  border-radius: 50%;
+}
+
+.cardContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cardContent h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.price {
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 0.5rem;
+}
+
+.description {
+  font-size: 0.9rem;
+  color: var(--accent);
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px dashed var(--border);
+  padding-top: 1rem;
+}
+
+.addBtn {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(60, 141, 188, 0.2);
+}
+
+.addBtn:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(60, 141, 188, 0.3);
+}
+
+
+
+.quantityControl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  height: 38px;
+  width: 100px; /* Fixed width for stability */
+}
+
+.quantityControl button {
+  background: rgba(60, 141, 188, 0.15);
+  backdrop-filter: blur(8px);
+  color: var(--primary);
+  border: none;
+  padding: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+
+.quantityControl button:hover:not(:disabled) {
+  background: rgba(60, 141, 188, 0.25);
+  transform: scale(1.05);
+}
+
+.quantityControl button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.quantityControl span {
+  font-weight: 700;
+  color: var(--foreground);
+  padding: 0 0.5rem;
+  min-width: 2ch;
+  text-align: center;
+}
+
+.disabledBtn {
+  background: var(--accent) !important;
+  opacity: 0.6;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.disabledActions {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    padding: 1rem;
+  }
+  
+  .sidebar {
+    width: 100%;
+    position: static;
+  }
+  
+  .categoryNav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+  }
+  
+  .categoryBtn {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    background: var(--secondary);
+    border-radius: var(--radius-full);
+  }
+
+  .categoryBtn.active::after {
+    display: none;
+  }
+  
+  .categoryBtn.active {
+    background: var(--primary);
+    color: white;
+  }
+}
