@@ -207,7 +207,7 @@ export default function ProfilePage() {
       ordersSubscription = supabase
         .channel(`user-orders-live`)
         .on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event: '*',
             table: 'orders'
