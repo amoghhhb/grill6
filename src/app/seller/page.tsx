@@ -749,75 +749,101 @@ export default function SellerDashboard() {
           </div>
         )}
 
-        {activeTab === 'categories' && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={styles.card}
-          >
-            <div className={styles.sectionHeader}>
-              <h3>📂 Category Management</h3>
-            </div>
-
-            <div className={styles.categoryManagerBody} style={{ padding: '1rem' }}>
-              <p style={{ color: 'var(--accent)', marginBottom: '1.5rem' }}>
-                Create and organize categories to structure your menu for customers.
-              </p>
-              
-              <div className={styles.addCategoryRow}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, fontSize: '0.9rem' }}>New Category Name</label>
-                  <input 
-                    type="text" 
-                    placeholder="e.g. Italian Special, Breakfast, etc." 
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    className={styles.modalInput}
-                    style={{ width: '100%' }}
-                  />
+          {activeTab === 'categories' && (
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className={styles.card}
+            >
+              <div className={styles.categoryManagerBody}>
+                <div className={styles.categoryHeaderSection}>
+                  <h2 style={{ fontSize: '1.8rem', fontWeight: 900, marginBottom: '0.5rem' }}>📂 Category Management</h2>
+                  <p style={{ color: 'var(--accent)', fontSize: '1rem' }}>
+                    Create and organize your menu structure. Custom categories help customers find exactly what they want.
+                  </p>
                 </div>
-                <button 
-                  onClick={handleAddCategory}
-                  disabled={isAddingCategory || !newCategoryName.trim()}
-                  className={styles.saveBtn}
-                  style={{ height: '42px', padding: '0 2rem' }}
-                >
-                  {isAddingCategory ? 'Adding...' : 'Add Category'}
-                </button>
-              </div>
+                
+                <div className={styles.addCategoryRow}>
+                  <div className={styles.categoryInputWrapper}>
+                    <label>New Category Name</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Burgers, Pizza, Desserts..." 
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className={styles.premiumInput}
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                    />
+                  </div>
+                  <button 
+                    onClick={handleAddCategory}
+                    disabled={isAddingCategory || !newCategoryName.trim()}
+                    className={styles.addCategoryBtn}
+                  >
+                    {isAddingCategory ? '✨ Adding...' : '🚀 Create Category'}
+                  </button>
+                </div>
 
-              <div className={styles.categoryList} style={{ marginTop: '2rem' }}>
-                <h4 style={{ marginBottom: '1.5rem' }}>Active Categories</h4>
-                {isLoadingCategories ? (
-                  <div className={styles.loader}></div>
-                ) : categories.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--secondary)', borderRadius: '12px' }}>
-                    <p style={{ color: 'var(--accent)', fontSize: '1.1rem' }}>No custom categories yet.</p>
-                    <p style={{ color: 'var(--accent)', opacity: 0.7, fontSize: '0.9rem' }}>Add your first category above to start organizing your menu.</p>
-                  </div>
-                ) : (
-                  <div className={styles.categoryItemsGrid}>
-                    {categories.map(cat => (
-                      <div key={cat.id} className={styles.categoryItemRow}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-                          <span style={{ fontSize: '1.2rem' }}>📂</span>
-                          <span>{cat.name}</span>
-                        </div>
-                        <button 
-                          onClick={() => handleDeleteCategory(cat.id)}
-                          className={styles.deleteIconBtn}
-                          title="Delete Category"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className={styles.categoryList}>
+                  <h4>
+                    <span>📦</span> Active Categories 
+                    <span style={{ fontSize: '0.8rem', opacity: 0.5, fontWeight: 500, marginLeft: '0.5rem' }}>({categories.length})</span>
+                  </h4>
+                  
+                  {isLoadingCategories ? (
+                    <div className={styles.loader}></div>
+                  ) : (
+                    <div className={styles.categoryItemsGrid}>
+                      <AnimatePresence mode="popLayout">
+                        {categories.map((cat, index) => (
+                          <motion.div 
+                            key={cat.id} 
+                            layout
+                            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.5, x: -50 }}
+                            transition={{ delay: index * 0.05, type: "spring", stiffness: 300, damping: 25 }}
+                            className={styles.categoryCard}
+                          >
+                            <div className={styles.categoryInfo}>
+                              <div className={styles.categoryIcon}>
+                                {cat.name.toLowerCase().includes('burger') ? '🍔' : 
+                                 cat.name.toLowerCase().includes('drink') ? '🥤' :
+                                 cat.name.toLowerCase().includes('pizza') ? '🍕' :
+                                 cat.name.toLowerCase().includes('dessert') ? '🍰' : '📂'}
+                              </div>
+                              <span className={styles.categoryName}>{cat.name}</span>
+                            </div>
+                            <button 
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className={styles.deleteBtn}
+                              title="Delete Category"
+                            >
+                              <span style={{ fontSize: '1.2rem' }}>×</span>
+                            </button>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
+                  {!isLoadingCategories && categories.length === 0 && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={styles.emptyCategories}
+                    >
+                      <div className={styles.emptyIcon}>📂</div>
+                      <h3 style={{ margin: 0, fontWeight: 800 }}>No Categories Yet</h3>
+                      <p style={{ color: 'var(--accent)', maxWidth: '300px', margin: 0 }}>
+                        Start by creating a category above. Your menu items need a home!
+                      </p>
+                    </motion.div>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )}
 
         {activeTab === 'coupons' && (
           <div className="animate-fade-in">
