@@ -822,7 +822,7 @@ export default function SellerDashboard() {
                         innerRadius={0}
                         outerRadius={80}
                         dataKey="value"
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                       >
                         <Cell fill="#6366f1" /> {/* Indigo */}
                         <Cell fill="#cbd5e1" /> {/* Slate 300 */}
