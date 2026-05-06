@@ -138,7 +138,8 @@ export default function LoginPage() {
               gender: gender,
               mobile_number: phone,
               role: 'user'
-            }
+            },
+            emailRedirectTo: `${window.location.origin}/menu`
           }
         });
         if (error) {
