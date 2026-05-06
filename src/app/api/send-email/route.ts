@@ -1,21 +1,37 @@
-import { Resend } from 'resend';
-import { NextResponse } from 'next/server';
+import nodemailer from "nodemailer";
+import { NextResponse } from "next/server";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Create SMTP Transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "465"),
+  secure: true, 
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
 export async function POST(request: Request) {
   try {
     const { to, subject, html } = await request.json();
 
-    const data = await resend.emails.send({
-      from: 'Grill 6 <onboarding@resend.dev>', // You can update this once you verify your domain
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        return NextResponse.json({ error: "SMTP credentials not configured" }, { status: 500 });
+    }
+
+    const info = await transporter.sendMail({
+      from: `"Grill 6" <${process.env.SMTP_USER}>`,
       to,
       subject,
       html,
     });
 
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json({ error });
+    return NextResponse.json({ success: true, messageId: info.messageId });
+  } catch (error: any) {
+    console.error("Email API Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export const dynamic = 'force-dynamic';
