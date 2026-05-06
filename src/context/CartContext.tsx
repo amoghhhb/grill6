@@ -123,7 +123,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .on(
         'postgres_changes' as any,
         { event: 'UPDATE', table: 'profiles' },
-        (payload) => {
+        (payload: any) => {
           console.log("🔄 [System] Status Sync:", payload.new.is_open);
           fetchOutletStatus();
         }
@@ -131,7 +131,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       .on(
         'postgres_changes' as any,
         { event: '*', table: 'settings' },
-        (payload) => {
+        (payload: any) => {
           console.log("🛠️ [System] Settings Sync:", payload);
           fetchGlobalSettings();
         }
