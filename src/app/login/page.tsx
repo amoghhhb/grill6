@@ -47,7 +47,7 @@ export default function LoginPage() {
           .eq('email', email)
           .limit(1);
         
-        setEmailInUse(data && data.length > 0);
+        setEmailInUse(!!(data && data.length > 0));
         setIsCheckingEmail(false);
       };
 
@@ -68,7 +68,7 @@ export default function LoginPage() {
           .eq('mobile_number', phone)
           .limit(1);
         
-        setPhoneInUse(data && data.length > 0);
+        setPhoneInUse(!!(data && data.length > 0));
         setIsCheckingPhone(false);
       };
 
