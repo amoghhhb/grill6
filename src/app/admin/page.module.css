@@ -1011,43 +1011,152 @@
 .staffList {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.6rem;
+  margin-bottom: 1.2rem;
 }
 
 .staffItem {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 0.8rem;
-  background: var(--secondary);
+  gap: 0.6rem;
+  padding: 0.5rem 1rem;
+  background: var(--card);
   border-radius: var(--radius-full);
   font-size: 0.8rem;
-  font-weight: 600;
-  border: 1px solid var(--border);
+  font-weight: 700;
+  border: 1.5px solid var(--border);
+  color: var(--foreground);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-sm);
+}
+
+.staffItem:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(60, 141, 188, 0.2);
 }
 
 .removeBtn {
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  color: #ef4444;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.removeBtn:hover {
+  background: #ef4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+.staffDropdownContainer {
+  position: relative;
+  width: 100%;
+}
+
+.staffDropdownTrigger {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--background);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.staffDropdownTrigger:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.triggerActive {
+  border-color: var(--primary);
+  background: rgba(60, 141, 188, 0.05);
+  box-shadow: 0 0 0 4px rgba(60, 141, 188, 0.1);
+}
+
+.staffDropdownList {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  z-index: 100;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0.5rem;
+  backdrop-filter: blur(20px);
+}
+
+.staffOption {
+  width: 100%;
+  padding: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
   background: transparent;
   border: none;
-  color: var(--destructive);
-  font-size: 1.2rem;
-  line-height: 1;
-  cursor: pointer;
-  padding: 0;
-}
-
-.assignRow {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.smallSelect {
-  flex: 1;
-  padding: 0.5rem;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--background);
-  font-size: 0.85rem;
   cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.staffOption:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.staffAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 0.75rem;
+}
+
+.staffInfo {
+  flex: 1;
+}
+
+.staffName {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.staffEmail {
+  font-size: 0.75rem;
+  color: var(--accent);
+  margin: 0;
+}
+
+.emptySellers {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-style: italic;
 }
