@@ -197,7 +197,7 @@ export default function LoginPage() {
                           placeholder="John" 
                           className={styles.input} 
                           value={firstName}
-                          onChange={(e) => setFirstName(e.target.value)}
+                          onChange={(e) => setFirstName(e.target.value.toUpperCase())}
                         />
                       </div>
                       <div className={styles.formGroup} style={{ flex: 1 }}>
@@ -207,7 +207,7 @@ export default function LoginPage() {
                           placeholder="Doe" 
                           className={styles.input} 
                           value={lastName}
-                          onChange={(e) => setLastName(e.target.value)}
+                          onChange={(e) => setLastName(e.target.value.toUpperCase())}
                         />
                       </div>
                     </div>

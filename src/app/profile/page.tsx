@@ -336,7 +336,7 @@ export default function ProfilePage() {
                 <input 
                   type="text" 
                   value={fname} 
-                  onChange={(e) => setFname(e.target.value)} 
+                  onChange={(e) => setFname(e.target.value.toUpperCase())} 
                   className={styles.input} 
                 />
               </div>
@@ -345,7 +345,7 @@ export default function ProfilePage() {
                 <input 
                   type="text" 
                   value={lname} 
-                  onChange={(e) => setLname(e.target.value)} 
+                  onChange={(e) => setLname(e.target.value.toUpperCase())} 
                   className={styles.input} 
                 />
               </div>
