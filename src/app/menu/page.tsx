@@ -10,12 +10,16 @@ import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { MenuItem } from '@/data/menu';
 
+const quantityVariants = {
+  initial: (dir: number) => ({ y: dir > 0 ? 20 : -20, opacity: 0 }),
+  animate: { y: 0, opacity: 1 },
+  exit: (dir: number) => ({ y: dir > 0 ? -20 : 20, opacity: 0 }),
+};
+
 const AnimatedQuantity = ({ quantity }: { quantity: number }) => {
-  // Initialize to quantity - 1 so the first render (0 to 1) counts as an "upward" direction
   const prevQuantityRef = React.useRef(quantity - 1);
   const direction = quantity > prevQuantityRef.current ? 1 : -1;
   
-  // Update ref after render so we can compare current vs previous on next render
   React.useEffect(() => {
     prevQuantityRef.current = quantity;
   }, [quantity]);
@@ -26,9 +30,10 @@ const AnimatedQuantity = ({ quantity }: { quantity: number }) => {
         <motion.span
           key={quantity}
           custom={direction}
-          initial={(dir: number) => ({ y: dir > 0 ? 20 : -20, opacity: 0 })}
-          animate={{ y: 0, opacity: 1 }}
-          exit={(dir: number) => ({ y: dir > 0 ? -20 : 20, opacity: 0 })}
+          variants={quantityVariants}
+          initial="initial"
+          animate="animate"
+          exit="exit"
           transition={{ type: "tween", duration: 0.25, ease: "easeOut" }}
         >
           {quantity}
