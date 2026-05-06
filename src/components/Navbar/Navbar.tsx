@@ -329,7 +329,7 @@ export default function Navbar() {
                 style={{ display: 'flex', marginRight: '1.2rem' }}
               >
                 <button className="btn-icon" onClick={() => router.push('/menu')} style={{ width: 'auto', padding: '0 0.5rem' }}>
-                  <span style={{ fontWeight: 800, fontSize: '0.9rem', letterSpacing: '0.05em', color: '#000000' }}>MENU</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.9rem', letterSpacing: '0.05em', color: '#000000' }}>MENU</span>
                 </button>
               </motion.div>
             )}
