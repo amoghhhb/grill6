@@ -9,7 +9,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { MOCK_MENU } from '@/data/menu';
 import { supabase } from '@/lib/supabase';
-import AnimatedMenuIcon from '@/components/Icons/AnimatedMenuIcon';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -330,7 +329,9 @@ export default function Navbar() {
                 style={{ display: 'flex', marginRight: '1.2rem' }}
               >
                 <button className="btn-icon" onClick={() => router.push('/menu')}>
-                  <AnimatedMenuIcon size={24} color="#000000" />
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="icon">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
                 </button>
               </motion.div>
             )}
