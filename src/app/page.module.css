@@ -20,9 +20,21 @@
   font-weight: 900;
   letter-spacing: -0.02em;
   line-height: 1.2;
-  color: #ffffff; /* White text for dark background */
+  color: #ffffff;
   margin-bottom: 1rem;
   text-shadow: 0 4px 12px rgba(0,0,0,0.8);
+}
+
+@media (max-width: 768px) {
+  .main h1 {
+    font-size: 2.2rem;
+  }
+  .main p {
+    font-size: 1rem;
+  }
+  .main {
+    padding: 1.5rem;
+  }
 }
 
 .main p {

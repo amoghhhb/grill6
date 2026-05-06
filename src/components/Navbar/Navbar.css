@@ -179,14 +179,36 @@
 }
 
 @media (max-width: 768px) {
+  .navbar {
+    height: 60px;
+  }
+  .nav-left {
+    gap: 0.5rem !important;
+  }
+  .logo {
+    font-size: 1.4rem !important;
+  }
+  .location-selector {
+    padding-left: 0.5rem !important;
+  }
+  .location-label {
+    display: none !important;
+  }
+  .location-value {
+    font-size: 0.8rem !important;
+  }
   .search-container {
     display: none;
   }
   .btn-reorder span {
     display: none;
   }
-  .location-selector {
-    display: none;
+  .btn-reorder {
+    padding: 0.5rem !important;
+  }
+  .btn-icon {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
   }
 }
 
