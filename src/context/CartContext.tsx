@@ -217,7 +217,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (session?.user) {
           fetchUserRole(session.user.id);
         }
-      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+      } else if (event === 'SIGNED_OUT' || (event as any) === 'USER_DELETED') {
         setIsLoggedIn(false);
         setUser(null);
         setUserRole(null);
