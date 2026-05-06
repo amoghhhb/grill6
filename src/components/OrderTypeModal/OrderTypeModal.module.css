@@ -375,12 +375,20 @@
   color: var(--accent);
   font-weight: 700;
   cursor: pointer;
-  margin-bottom: 1rem;
+  margin: 1.5rem auto 0 auto;
   font-size: 0.9rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   transition: color 0.2s;
+  width: fit-content;
+}
+
+.typeSelectionWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
 .backBtn:hover {

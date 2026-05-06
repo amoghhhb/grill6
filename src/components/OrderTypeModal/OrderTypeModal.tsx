@@ -325,40 +325,42 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
         )}
 
         {step === 'type' && (
-          <div className={styles.animatedToggleGroup}>
+          <div className={styles.typeSelectionWrapper}>
+            <div className={styles.animatedToggleGroup}>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className={`${styles.animatedCard} ${localOrderType === 'takeaway' ? styles.activeCard : ''}`}
+                onClick={() => setLocalOrderType('takeaway')}
+                layout
+              >
+                <div className={styles.gifWrapper}>
+                  <img 
+                    src="/gifs/takeaway.gif" 
+                    alt="Takeaway" 
+                    className={styles.animatedGif}
+                  />
+                </div>
+                <h4>Takeaway</h4>
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05, y: -5 }}
+                whileTap={{ scale: 0.95 }}
+                className={`${styles.animatedCard} ${localOrderType === 'dine-in' ? styles.activeCard : ''}`}
+                onClick={() => setLocalOrderType('dine-in')}
+                layout
+              >
+                <div className={styles.gifWrapper}>
+                  <img 
+                    src="/gifs/dinein.gif" 
+                    alt="Dine-In" 
+                    className={styles.animatedGif}
+                  />
+                </div>
+                <h4>Dine-In</h4>
+              </motion.div>
+            </div>
             <button className={styles.backBtn} onClick={() => setStep('outlet')}>← Change Outlet</button>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
-              className={`${styles.animatedCard} ${localOrderType === 'takeaway' ? styles.activeCard : ''}`}
-              onClick={() => setLocalOrderType('takeaway')}
-              layout
-            >
-              <div className={styles.gifWrapper}>
-                <img 
-                  src="/gifs/takeaway.gif" 
-                  alt="Takeaway" 
-                  className={styles.animatedGif}
-                />
-              </div>
-              <h4>Takeaway</h4>
-            </motion.div>
-            <motion.div
-              whileHover={{ scale: 1.05, y: -5 }}
-              whileTap={{ scale: 0.95 }}
-              className={`${styles.animatedCard} ${localOrderType === 'dine-in' ? styles.activeCard : ''}`}
-              onClick={() => setLocalOrderType('dine-in')}
-              layout
-            >
-              <div className={styles.gifWrapper}>
-                <img 
-                  src="/gifs/dinein.gif" 
-                  alt="Dine-In" 
-                  className={styles.animatedGif}
-                />
-              </div>
-              <h4>Dine-In</h4>
-            </motion.div>
           </div>
         )}
 
