@@ -274,7 +274,7 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
     }
   };
 
-  const isTakeawayInvalid = localOrderType === 'takeaway' && (localDist === null || (selectedOutlet && localDist > (selectedOutlet.delivery_radius || 5)));
+  const isTakeawayInvalid = !!(localOrderType === 'takeaway' && (localDist === null || (selectedOutlet && localDist > (selectedOutlet.delivery_radius || 5))));
 
   if (!mounted) return null;
 
