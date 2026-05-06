@@ -121,7 +121,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const channel = supabase
       .channel('system-wide-sync')
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         { event: 'UPDATE', table: 'profiles' },
         (payload) => {
           console.log("🔄 [System] Status Sync:", payload.new.is_open);
@@ -129,7 +129,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       )
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         { event: '*', table: 'settings' },
         (payload) => {
           console.log("🛠️ [System] Settings Sync:", payload);
