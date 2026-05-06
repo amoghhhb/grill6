@@ -237,9 +237,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     const profileSubscription = supabase
       .channel(`profile-${user.id}`)
-      .on('postgres_changes', 
+      .on('postgres_changes' as any, 
         { event: 'UPDATE', table: 'profiles', filter: `id=eq.${user.id}` }, 
-        (payload) => {
+        (payload: any) => {
           console.log("[Auth] Profile Change Detected:", payload.new);
           if (payload.new.is_banned !== undefined) {
             setIsBanned(!!payload.new.is_banned);
