@@ -67,7 +67,7 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
   const fetchSuggestions = async (query: string) => {
     const apiKey = process.env.NEXT_PUBLIC_OLA_MAPS_API_KEY;
     if (!apiKey) {
-      console.error('Ola Maps API key is missing. Add NEXT_PUBLIC_OLA_MAPS_API_KEY to .env.local');
+      console.warn('⚠️ Ola Maps API key is missing in this environment! Suggestions will not work.');
       return;
     }
     try {
@@ -313,7 +313,7 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
               animate={{ opacity: 1, height: 'auto', scale: 1, y: 0 }}
               exit={{ opacity: 0, height: 0, scale: 0.8, y: -20 }}
               transition={{ type: 'spring', bounce: 0.5, duration: 0.8 }}
-              style={{ overflow: 'hidden' }}
+              style={{ overflow: 'visible' }}
             >
               <div className={styles.locationContainer}>
                 <div className={styles.searchContainer}>
