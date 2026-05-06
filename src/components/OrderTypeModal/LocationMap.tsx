@@ -80,7 +80,7 @@ export default function LocationMap({ userLoc, onLocationSelect }: LocationMapPr
   }, [apiKey]);
 
   return (
-    <div style={{ height: '300px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginTop: '1rem', border: '1px solid var(--border)', zIndex: 10 }}>
+    <div style={{ height: '300px', width: '100%', borderRadius: '8px', overflow: 'hidden', marginTop: '1rem', border: '1px solid var(--border)', zIndex: 10, flexShrink: 0 }}>
       <Map
         ref={mapRef}
         initialViewState={{
