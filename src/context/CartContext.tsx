@@ -13,6 +13,17 @@ export interface MenuItem {
   category: string;
   image?: string;
   description?: string;
+  outlet_id?: string;
+}
+
+export interface Outlet {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  delivery_radius: number;
+  is_open: boolean;
 }
 
 export interface CartItem extends MenuItem {
@@ -49,6 +60,8 @@ interface CartContextType {
   isMfaVerified: boolean;
   setIsMfaVerified: (val: boolean) => void;
   mfaPolicy: { is_active: boolean };
+  selectedOutlet: Outlet | null;
+  setSelectedOutlet: (outlet: Outlet | null) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -69,6 +82,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [mfaPolicy, setMfaPolicy] = useState({ is_active: false });
   const [isMfaVerified, setIsMfaVerified] = useState(false);
+  const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
   const router = useRouter();
 
   const fetchGlobalSettings = async () => {
@@ -94,16 +108,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const fetchOutletStatus = async () => {
     try {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('value')
-        .eq('key', 'outlet_status')
-        .maybeSingle();
-      
-      if (data?.value) {
-        setIsOutletOpen(data.value.is_open);
+      if (selectedOutlet) {
+        // Fetch specific outlet status
+        const { data } = await supabase
+          .from('outlets')
+          .select('is_open')
+          .eq('id', selectedOutlet.id)
+          .maybeSingle();
+        
+        if (data) {
+          setIsOutletOpen(data.is_open);
+          // Sync selectedOutlet object too if status changed
+          if (data.is_open !== selectedOutlet.is_open) {
+            setSelectedOutlet({ ...selectedOutlet, is_open: data.is_open });
+          }
+        }
       } else {
-        setIsOutletOpen(true); // Default to open if setting doesn't exist
+        // Fallback to global setting if no outlet selected
+        const { data } = await supabase
+          .from('settings')
+          .select('value')
+          .eq('key', 'outlet_status')
+          .maybeSingle();
+        
+        if (data?.value) {
+          setIsOutletOpen(data.value.is_open);
+        } else {
+          setIsOutletOpen(true);
+        }
       }
     } catch (err) {
       console.error("Error fetching outlet status:", err);
@@ -122,8 +154,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         'postgres_changes' as any,
         { event: 'UPDATE', table: 'profiles' },
         (payload: any) => {
-          console.log("🔄 [System] Status Sync:", payload.new.is_open);
+          // No longer purely profile based, but keeping for legacy sync
           fetchOutletStatus();
+        }
+      )
+      .on(
+        'postgres_changes' as any,
+        { event: 'UPDATE', table: 'outlets', filter: selectedOutlet ? `id=eq.${selectedOutlet.id}` : undefined },
+        (payload: any) => {
+          console.log("🏪 [System] Outlet Sync:", payload.new.is_open);
+          setIsOutletOpen(payload.new.is_open);
+          if (selectedOutlet) {
+            setSelectedOutlet({ ...selectedOutlet, is_open: payload.new.is_open });
+          }
         }
       )
       .on(
@@ -146,7 +189,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       supabase.removeChannel(channel);
       clearInterval(heartbeat);
     };
-  }, []);
+  }, [selectedOutlet]);
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -269,7 +312,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (savedAddress) {
       setUserAddress(savedAddress);
     }
+
+    const savedOutlet = localStorage.getItem('selected_outlet');
+    if (savedOutlet) {
+      try {
+        setSelectedOutlet(JSON.parse(savedOutlet));
+      } catch (e) {
+        console.error("Failed to parse outlet from local storage");
+      }
+    }
   }, []);
+
+  // Save outlet to localStorage
+  useEffect(() => {
+    if (selectedOutlet) {
+      localStorage.setItem('selected_outlet', JSON.stringify(selectedOutlet));
+    } else {
+      localStorage.removeItem('selected_outlet');
+    }
+  }, [selectedOutlet]);
 
   // Save to localStorage on change
   useEffect(() => {
@@ -352,6 +413,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isMfaVerified,
         setIsMfaVerified,
         mfaPolicy,
+        selectedOutlet,
+        setSelectedOutlet,
         logout: async () => {
           await supabase.auth.signOut();
           setIsLoggedIn(false);

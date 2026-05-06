@@ -119,19 +119,19 @@ export default function SellerDashboard() {
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
   const [isAcceptingOrders, setIsAcceptingOrders] = useState(true);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [assignedOutlets, setAssignedOutlets] = useState<any[]>([]);
+  const [selectedOutletId, setSelectedOutletId] = useState<string | null>(null);
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
 
   const toggleOutletStatus = async () => {
+    if (!selectedOutletId) return;
     setIsUpdatingStatus(true);
     const newStatus = !isAcceptingOrders;
     try {
-      // Update global settings table instead of individual profile
       const { error } = await supabase
-        .from('settings')
-        .upsert({ 
-          key: 'outlet_status', 
-          value: { is_open: newStatus },
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'key' });
+        .from('outlets')
+        .update({ is_open: newStatus })
+        .eq('id', selectedOutletId);
       
       if (error) throw error;
       
@@ -147,32 +147,65 @@ export default function SellerDashboard() {
   };
 
   const fetchInitialStatus = async () => {
+    if (!selectedOutletId) return;
     const { data } = await supabase
-      .from('settings')
-      .select('value')
-      .eq('key', 'outlet_status')
+      .from('outlets')
+      .select('is_open')
+      .eq('id', selectedOutletId)
       .maybeSingle();
     
-    if (data?.value) {
-      setIsAcceptingOrders(data.value.is_open);
+    if (data) {
+      setIsAcceptingOrders(data.is_open);
+    }
+  };
+
+  const fetchAssignments = async () => {
+    if (!user?.id) return;
+    setIsLoadingAssignments(true);
+    try {
+      const { data, error } = await supabase
+        .from('outlet_assignments')
+        .select('*, outlets(*)')
+        .eq('user_id', user.id);
+      
+      if (!error && data && data.length > 0) {
+        const uniqueOutlets = data.map(d => d.outlets);
+        setAssignedOutlets(uniqueOutlets);
+        setSelectedOutletId(uniqueOutlets[0].id);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingAssignments(false);
     }
   };
 
   useEffect(() => {
-    fetchInitialStatus();
+    if (user?.id) {
+      fetchAssignments();
+    }
+  }, [user?.id]);
 
-    // Listen for global status changes
-    const channel = supabase
-      .channel('global-outlet-sync')
-      .on('postgres_changes', { event: '*', table: 'settings', filter: 'key=eq.outlet_status' }, (payload: any) => {
-        if (payload.new?.value) {
-          setIsAcceptingOrders(payload.new.value.is_open);
-        }
-      })
-      .subscribe();
+  useEffect(() => {
+    if (selectedOutletId) {
+      fetchInitialStatus();
+      // Listen for specific outlet status changes
+      const channel = supabase
+        .channel(`outlet-sync-${selectedOutletId}`)
+        .on('postgres_changes' as any, { 
+          event: '*', 
+          table: 'outlets', 
+          filter: `id=eq.${selectedOutletId}` 
+        }, (payload: any) => {
+          if (payload.new) {
+            setIsAcceptingOrders(payload.new.is_open);
+          }
+        })
+        .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
-  }, []);
+      return () => { supabase.removeChannel(channel); };
+    }
+  }, [selectedOutletId]);
 
   const fetchCategories = async () => {
     if (!user?.id) return;
@@ -271,6 +304,7 @@ export default function SellerDashboard() {
         order_items (*),
         profiles:user_id (email, first_name, last_name)
       `)
+      .eq('outlet_id', selectedOutletId) // Filter by active outlet
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -320,6 +354,7 @@ export default function SellerDashboard() {
     const { data, error } = await supabase
       .from('coupons')
       .select('*')
+      .eq('outlet_id', selectedOutletId)
       .order('created_at', { ascending: false });
     
     if (data) setCoupons(data);
@@ -331,6 +366,7 @@ export default function SellerDashboard() {
     const { data, error } = await supabase
       .from('menu_items')
       .select('*')
+      .eq('outlet_id', selectedOutletId)
       .order('created_at', { ascending: false });
     
     if (data) setMenuItems(data);
@@ -346,7 +382,8 @@ export default function SellerDashboard() {
       .insert([{
         ...newDish,
         price: parseFloat(newDish.price),
-        seller_id: user.id
+        seller_id: user.id,
+        outlet_id: selectedOutletId
       }]);
 
     if (!error) {
@@ -564,7 +601,18 @@ export default function SellerDashboard() {
             <img src="/images/logo.png" alt="Grill 6 Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <div>
-            <h3>Grill 6 Outlet</h3>
+            <h3>{assignedOutlets.find(o => o.id === selectedOutletId)?.name || 'Grill 6 Outlet'}</h3>
+            {assignedOutlets.length > 1 && (
+              <select 
+                className={styles.outletSelector}
+                value={selectedOutletId || ''}
+                onChange={(e) => setSelectedOutletId(e.target.value)}
+              >
+                {assignedOutlets.map(o => (
+                  <option key={o.id} value={o.id}>{o.name}</option>
+                ))}
+              </select>
+            )}
             <p className={`${styles.status} ${!isAcceptingOrders ? styles.closed : ''}`}>
               <span className={`${styles.dot} ${!isAcceptingOrders ? styles.redDot : ''}`}></span> 
               {isAcceptingOrders ? 'Accepting Orders' : 'Currently Closed'}

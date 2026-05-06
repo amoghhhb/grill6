@@ -233,6 +233,18 @@ export default function AdminDashboard() {
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [mfaPolicy, setMfaPolicy] = useState({ is_active: false });
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+  const [outlets, setOutlets] = useState<any[]>([]);
+  const [isLoadingOutlets, setIsLoadingOutlets] = useState(false);
+  const [showOutletModal, setShowOutletModal] = useState(false);
+  const [newOutlet, setNewOutlet] = useState({
+    name: '',
+    address: '',
+    delivery_radius: '5',
+    latitude: '',
+    longitude: '',
+    is_open: true
+  });
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const fetchSettings = async () => {
     try {
@@ -435,6 +447,9 @@ export default function AdminDashboard() {
     if (activeTab === 'coupons') {
       fetchCoupons();
     }
+    if (activeTab === 'sellers') {
+      fetchOutlets();
+    }
 
     // 1. High-Reliability Realtime Subscription
     const dashboardSubscription = supabase
@@ -546,6 +561,67 @@ export default function AdminDashboard() {
       fetchDashboardData(); // Refresh list
     } catch (err: any) {
       alert("Action failed: " + err.message);
+    }
+  };
+
+  const fetchOutlets = async () => {
+    setIsLoadingOutlets(true);
+    try {
+      const { data, error } = await supabase.from('outlets').select('*, outlet_assignments(*)');
+      if (!error && data) setOutlets(data);
+    } catch (e) {
+      console.error("Fetch outlets failed", e);
+    } finally {
+      setIsLoadingOutlets(false);
+    }
+  };
+
+  const handleCreateOutlet = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const { error } = await supabase.from('outlets').insert([{
+        ...newOutlet,
+        delivery_radius: parseFloat(newOutlet.delivery_radius)
+      }]);
+      if (error) throw error;
+      setShowOutletModal(false);
+      setNewOutlet({ name: '', address: '', delivery_radius: '5', latitude: '', longitude: '', is_open: true });
+      fetchOutlets();
+      setToastMessage("🏢 New Outlet Created!");
+      setShowToast(true);
+    } catch (e: any) {
+      alert("Failed to create outlet: " + e.message);
+    }
+  };
+
+  const handleAssignSeller = async (outletId: string, sellerId: string) => {
+    if (!sellerId) return;
+    setIsAssigning(true);
+    try {
+      const { error } = await supabase.from('outlet_assignments').insert([{
+        outlet_id: outletId,
+        user_id: sellerId
+      }]);
+      if (error) throw error;
+      fetchOutlets();
+      setToastMessage("🤝 Seller Assigned Successfully!");
+      setShowToast(true);
+    } catch (e: any) {
+      alert("Assignment failed: " + e.message);
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
+  const handleRemoveAssignment = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase.from('outlet_assignments').delete().eq('id', assignmentId);
+      if (error) throw error;
+      fetchOutlets();
+      setToastMessage("🗑️ Assignment Removed");
+      setShowToast(true);
+    } catch (e: any) {
+      console.error(e);
     }
   };
  
@@ -826,6 +902,63 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {activeTab === 'sellers' && (
+          <div className="animate-fade-in">
+            <div className={styles.headerFlex}>
+              <h2 className={styles.pageTitle}>Outlet Command Center</h2>
+              <button className={styles.primaryBtn} onClick={() => setShowOutletModal(true)}>+ New Outlet</button>
+            </div>
+
+            <div className={styles.outletGrid}>
+              {isLoadingOutlets ? (
+                <p>Loading Outlets...</p>
+              ) : outlets.map(outlet => (
+                <div key={outlet.id} className={styles.outletCard}>
+                  <div className={styles.outletHeader}>
+                    <h3>{outlet.name}</h3>
+                    <span className={`${styles.statusBadge} ${outlet.is_open ? styles.pending : styles.cancelled}`}>
+                      {outlet.is_open ? 'OPEN' : 'CLOSED'}
+                    </span>
+                  </div>
+                  <p className={styles.outletAddr}>{outlet.address}</p>
+                  
+                  <div className={styles.assignmentSection}>
+                    <h4>👥 Assigned Sellers</h4>
+                    <div className={styles.staffList}>
+                      {outlet.outlet_assignments?.map((asgn: any) => {
+                        const seller = usersList.find(u => u.id === asgn.user_id);
+                        return (
+                          <div key={asgn.id} className={styles.staffItem}>
+                            <span>{seller ? `${seller.first_name} ${seller.last_name}` : 'Unknown Seller'}</span>
+                            <button onClick={() => handleRemoveAssignment(asgn.id)} className={styles.removeBtn}>×</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div className={styles.assignRow}>
+                      <select 
+                        className={styles.smallSelect}
+                        onChange={(e) => handleAssignSeller(outlet.id, e.target.value)}
+                        value=""
+                        disabled={isAssigning}
+                      >
+                        <option value="">+ Assign Seller...</option>
+                        {usersList.filter(u => u.role === 'seller').map(s => (
+                          <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {!isLoadingOutlets && outlets.length === 0 && (
+                <div className={styles.emptyState}>No outlets created yet.</div>
+              )}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'analytics' && (
           <div className="animate-fade-in">
             <div className={styles.analyticsHeader}>
@@ -1074,6 +1207,78 @@ export default function AdminDashboard() {
               )}
               <button type="submit" className={styles.submitBtn}>
                 Launch Global Coupon
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Outlet Creation Modal */}
+      {showOutletModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent}>
+            <div className={styles.modalHeader}>
+              <h2>Setup New Outlet</h2>
+              <button className={styles.closeBtn} onClick={() => setShowOutletModal(false)}>×</button>
+            </div>
+            <form onSubmit={handleCreateOutlet} className={styles.modalForm}>
+              <div className={styles.formGroup}>
+                <label>Outlet Name</label>
+                <input 
+                  type="text" 
+                  className={styles.input}
+                  value={newOutlet.name} 
+                  onChange={e => setNewOutlet({...newOutlet, name: e.target.value})}
+                  required 
+                  placeholder="e.g. Grill 6 - Downtown"
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Full Address</label>
+                <textarea 
+                  className={styles.textarea}
+                  value={newOutlet.address} 
+                  onChange={e => setNewOutlet({...newOutlet, address: e.target.value})}
+                  required 
+                  placeholder="Street, City, Zip..."
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label>Delivery Radius (km)</label>
+                <input 
+                  type="number" 
+                  className={styles.input}
+                  value={newOutlet.delivery_radius} 
+                  onChange={e => setNewOutlet({...newOutlet, delivery_radius: e.target.value})}
+                  placeholder="5"
+                />
+              </div>
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Latitude</label>
+                  <input 
+                    type="number" step="any"
+                    className={styles.input}
+                    value={newOutlet.latitude} 
+                    onChange={e => setNewOutlet({...newOutlet, latitude: e.target.value})}
+                    required
+                    placeholder="19.007..."
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Longitude</label>
+                  <input 
+                    type="number" step="any"
+                    className={styles.input}
+                    value={newOutlet.longitude} 
+                    onChange={e => setNewOutlet({...newOutlet, longitude: e.target.value})}
+                    required
+                    placeholder="73.113..."
+                  />
+                </div>
+              </div>
+              <button type="submit" className={styles.submitBtn}>
+                Initialize Outlet
               </button>
             </form>
           </div>

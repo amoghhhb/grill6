@@ -52,17 +52,23 @@ function MenuContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [activeCategory, setActiveCategory] = useState('Recommended');
-  const { cart, addToCart, updateQuantity, orderType, isOutletOpen } = useCart();
+  const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet } = useCart();
   const [modalDismissed, setModalDismissed] = useState(false);
 
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        let query = supabase
           .from('menu_items')
           .select('*')
           .eq('is_available', true);
+        
+        if (selectedOutlet) {
+          query = query.eq('outlet_id', selectedOutlet.id);
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
 
@@ -90,7 +96,7 @@ function MenuContent() {
     };
 
     fetchMenu();
-  }, []);
+  }, [selectedOutlet]);
 
   const filteredMenu = menuItems.filter(item => {
     const matchesFilter = filter === 'all' ? true : (filter === 'veg' ? item.isVeg : !item.isVeg);

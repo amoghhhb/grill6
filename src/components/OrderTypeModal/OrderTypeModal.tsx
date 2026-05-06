@@ -31,7 +31,11 @@ interface OrderTypeModalProps {
 }
 
 export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
-  const { setOrderType, setUserLocation, setDistance, setUserAddress } = useCart();
+  const { setOrderType, setUserLocation, setDistance, setUserAddress, selectedOutlet, setSelectedOutlet } = useCart();
+  
+  const [outlets, setOutlets] = useState<any[]>([]);
+  const [isLoadingOutlets, setIsLoadingOutlets] = useState(true);
+  const [step, setStep] = useState<'outlet' | 'type'>('outlet');
   
   const [localOrderType, setLocalOrderType] = useState<'takeaway' | 'dine-in' | null>(null);
   const [localUserLoc, setLocalUserLoc] = useState<{ lat: number, lng: number } | null>(null);
@@ -50,8 +54,23 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
   
   useEffect(() => {
     setMounted(true);
+    fetchOutlets();
     return () => setMounted(false);
   }, []);
+
+  const fetchOutlets = async () => {
+    setIsLoadingOutlets(true);
+    try {
+      const { data, error } = await supabase.from('outlets').select('*').eq('is_open', true);
+      if (!error && data) {
+        setOutlets(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsLoadingOutlets(false);
+    }
+  };
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -126,14 +145,14 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
       }
     }
 
-    if (lat && lng) {
+    if (lat && lng && selectedOutlet) {
       setLocalUserLoc({ lat, lng });
       setAddress(displayName);
 
-      const dist = calculateDistance(STORE_LOCATION.lat, STORE_LOCATION.lng, lat, lng);
+      const dist = calculateDistance(selectedOutlet.latitude, selectedOutlet.longitude, lat, lng);
       setLocalDist(dist);
-      if (dist > 5) {
-        setLocationError('Your location is outside our 5km radius for takeaway.');
+      if (dist > (selectedOutlet.delivery_radius || 5)) {
+        setLocationError(`Your location is outside our ${selectedOutlet.delivery_radius || 5}km radius for this outlet.`);
       } else {
         setLocationError('');
       }
@@ -159,12 +178,14 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
         setLocalUserLoc({ lat, lng });
         setAddress(displayName);
 
-        const dist = calculateDistance(STORE_LOCATION.lat, STORE_LOCATION.lng, lat, lng);
-        setLocalDist(dist);
-        if (dist > 5) {
-          setLocationError('Your location is outside our 5km radius for takeaway.');
-        } else {
-          setLocationError('');
+        if (selectedOutlet) {
+          const dist = calculateDistance(selectedOutlet.latitude, selectedOutlet.longitude, lat, lng);
+          setLocalDist(dist);
+          if (dist > (selectedOutlet.delivery_radius || 5)) {
+            setLocationError(`Your location is outside our ${selectedOutlet.delivery_radius || 5}km radius for this outlet.`);
+          } else {
+            setLocationError('');
+          }
         }
       } else {
         setLocationError('Address not found. Please try another search or use current location.');
@@ -187,12 +208,14 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
           // Reverse geocode to show actual address in the input box
           reverseGeocode(lat, lng);
 
-          const dist = calculateDistance(STORE_LOCATION.lat, STORE_LOCATION.lng, lat, lng);
-          setLocalDist(dist);
-          if (dist > 5) {
-            setLocationError('Your location is outside our 5km radius for takeaway.');
-          } else {
-            setLocationError('');
+          if (selectedOutlet) {
+            const dist = calculateDistance(selectedOutlet.latitude, selectedOutlet.longitude, lat, lng);
+            setLocalDist(dist);
+            if (dist > (selectedOutlet.delivery_radius || 5)) {
+              setLocationError(`Your location is outside our ${selectedOutlet.delivery_radius || 5}km radius for this outlet.`);
+            } else {
+              setLocationError('');
+            }
           }
         },
         () => {
@@ -225,12 +248,14 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
 
   const handleMapLocationSelect = (lat: number, lng: number) => {
     setLocalUserLoc({ lat, lng });
-    const dist = calculateDistance(STORE_LOCATION.lat, STORE_LOCATION.lng, lat, lng);
-    setLocalDist(dist);
-    if (dist > 5) {
-      setLocationError('Your location is outside our 5km radius for takeaway.');
-    } else {
-      setLocationError('');
+    if (selectedOutlet) {
+      const dist = calculateDistance(selectedOutlet.latitude, selectedOutlet.longitude, lat, lng);
+      setLocalDist(dist);
+      if (dist > (selectedOutlet.delivery_radius || 5)) {
+        setLocationError(`Your location is outside our ${selectedOutlet.delivery_radius || 5}km radius for this outlet.`);
+      } else {
+        setLocationError('');
+      }
     }
     reverseGeocode(lat, lng);
   };
@@ -248,7 +273,7 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
     }
   };
 
-  const isTakeawayInvalid = localOrderType === 'takeaway' && (localDist === null || localDist > 5);
+  const isTakeawayInvalid = localOrderType === 'takeaway' && (localDist === null || (selectedOutlet && localDist > (selectedOutlet.delivery_radius || 5)));
 
   if (!mounted) return null;
 
@@ -268,42 +293,73 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
         </button>
-        <h2 className={styles.title}>How would you like your order?</h2>
+        <h2 className={styles.title}>{step === 'outlet' ? 'Which Grill 6 are you ordering from?' : 'How would you like your order?'}</h2>
         
-        <div className={styles.animatedToggleGroup}>
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            className={`${styles.animatedCard} ${localOrderType === 'takeaway' ? styles.activeCard : ''}`}
-            onClick={() => setLocalOrderType('takeaway')}
-            layout
-          >
-            <div className={styles.gifWrapper}>
-              <img 
-                src="/gifs/takeaway.gif" 
-                alt="Takeaway" 
-                className={styles.animatedGif}
-              />
-            </div>
-            <h4>Takeaway</h4>
-          </motion.div>
-          <motion.div
-            whileHover={{ scale: 1.05, y: -5 }}
-            whileTap={{ scale: 0.95 }}
-            className={`${styles.animatedCard} ${localOrderType === 'dine-in' ? styles.activeCard : ''}`}
-            onClick={() => setLocalOrderType('dine-in')}
-            layout
-          >
-            <div className={styles.gifWrapper}>
-              <img 
-                src="/gifs/dinein.gif" 
-                alt="Dine-In" 
-                className={styles.animatedGif}
-              />
-            </div>
-            <h4>Dine-In</h4>
-          </motion.div>
-        </div>
+        {step === 'outlet' && (
+          <div className={styles.outletSelectionList}>
+            {isLoadingOutlets ? (
+              <p>Finding active outlets...</p>
+            ) : outlets.map(outlet => (
+              <motion.div
+                key={outlet.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className={`${styles.outletCard} ${selectedOutlet?.id === outlet.id ? styles.activeCard : ''}`}
+                onClick={() => {
+                  setSelectedOutlet(outlet);
+                  setStep('type');
+                }}
+              >
+                <div className={styles.outletInfo}>
+                  <h4>{outlet.name}</h4>
+                  <p>{outlet.address}</p>
+                </div>
+                <div className={styles.selectArrow}>→</div>
+              </motion.div>
+            ))}
+            {!isLoadingOutlets && outlets.length === 0 && (
+              <p className={styles.errorText}>No open outlets found nearby. Please try again later.</p>
+            )}
+          </div>
+        )}
+
+        {step === 'type' && (
+          <div className={styles.animatedToggleGroup}>
+            <button className={styles.backBtn} onClick={() => setStep('outlet')}>← Change Outlet</button>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className={`${styles.animatedCard} ${localOrderType === 'takeaway' ? styles.activeCard : ''}`}
+              onClick={() => setLocalOrderType('takeaway')}
+              layout
+            >
+              <div className={styles.gifWrapper}>
+                <img 
+                  src="/gifs/takeaway.gif" 
+                  alt="Takeaway" 
+                  className={styles.animatedGif}
+                />
+              </div>
+              <h4>Takeaway</h4>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05, y: -5 }}
+              whileTap={{ scale: 0.95 }}
+              className={`${styles.animatedCard} ${localOrderType === 'dine-in' ? styles.activeCard : ''}`}
+              onClick={() => setLocalOrderType('dine-in')}
+              layout
+            >
+              <div className={styles.gifWrapper}>
+                <img 
+                  src="/gifs/dinein.gif" 
+                  alt="Dine-In" 
+                  className={styles.animatedGif}
+                />
+              </div>
+              <h4>Dine-In</h4>
+            </motion.div>
+          </div>
+        )}
 
         <AnimatePresence mode="wait">
           {localOrderType === 'takeaway' && (

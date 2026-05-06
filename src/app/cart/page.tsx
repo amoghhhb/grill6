@@ -10,7 +10,7 @@ import OrderTypeModal from '@/components/OrderTypeModal/OrderTypeModal';
 import { supabase } from '@/lib/supabase';
 
 export default function CartPage() {
-  const { cart: items, updateQuantity, cartTotal, orderType, userLocation, distance, user, isOutletOpen } = useCart();
+  const { cart: items, updateQuantity, cartTotal, orderType, userLocation, distance, user, isOutletOpen, selectedOutlet } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('cash');
   const [showEditModal, setShowEditModal] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -37,6 +37,7 @@ export default function CartPage() {
         .select('*')
         .eq('code', couponCode.toUpperCase())
         .eq('status', 'active')
+        .eq('outlet_id', selectedOutlet?.id)
         .single();
 
       if (error || !data) {
@@ -108,6 +109,7 @@ export default function CartPage() {
         .from('orders')
         .select('daily_number')
         .gte('created_at', todayStart)
+        .eq('outlet_id', selectedOutlet?.id) // Daily numbers are per outlet
         .order('daily_number', { ascending: false })
         .limit(1);
       
@@ -130,7 +132,8 @@ export default function CartPage() {
             order_id_display: finalOrderId,
             total_amount: total,
             order_type: orderType,
-            payment_method: 'cash'
+            payment_method: 'cash',
+            outlet_id: selectedOutlet?.id
           })
           .select()
           .single();
@@ -343,9 +346,10 @@ export default function CartPage() {
               disabled={
                 items.length === 0 ||
                 orderType === null ||
-                (orderType === 'takeaway' && (distance === null || distance > 5)) ||
+                (orderType === 'takeaway' && (distance === null || (selectedOutlet && distance > (selectedOutlet.delivery_radius || 5)))) ||
                 isPlacing ||
-                !isOutletOpen
+                !isOutletOpen ||
+                !selectedOutlet
               }
               onClick={handlePlaceOrder}
             >
