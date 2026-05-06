@@ -160,7 +160,6 @@ export default function SellerDashboard() {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
-      .eq('seller_id', user.id)
       .order('name', { ascending: true });
     
     if (!error && data) {
@@ -257,23 +256,8 @@ export default function SellerDashboard() {
     if (error) {
       console.error("Error fetching orders:", error.message);
     } else {
-      // Get all menu items for THIS seller
-      const { data: myMenu } = await supabase
-        .from('menu_items')
-        .select('name')
-        .eq('seller_id', user.id);
-      
-      // Create a normalized set of names for robust matching
-      const myItemNames = new Set(myMenu?.map(m => m.name.toLowerCase().trim()) || []);
-
-      // Filter orders to only show those that contain items from THIS seller
-      const filteredOrders = userRole === 'admin' 
-        ? (data || []) 
-        : (data || []).filter(order => 
-            order.order_items?.some((item: any) => 
-              myItemNames.has(item.item_name?.toLowerCase().trim())
-            )
-          );
+      // Since Grill 6 is a single-store platform, all Sellers/Admins see all orders
+      const filteredOrders = data || [];
 
       setOrders(filteredOrders);
 
@@ -316,7 +300,6 @@ export default function SellerDashboard() {
     const { data, error } = await supabase
       .from('coupons')
       .select('*')
-      .eq('seller_id', user.id)
       .order('created_at', { ascending: false });
     
     if (data) setCoupons(data);
