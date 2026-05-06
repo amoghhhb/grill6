@@ -535,6 +535,100 @@
   border: 1px solid var(--destructive);
 }
 
+.addCategoryBtn {
+  background: rgba(60, 141, 188, 0.1);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.addCategoryBtn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.categoryManagerBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.addCategoryRow {
+  display: flex;
+  gap: 1rem;
+  background: var(--secondary);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  align-items: flex-end;
+}
+
+.categoryList h4 {
+  margin-bottom: 1rem;
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.categoryItemsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  max-height: 300px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.categoryItemRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--background);
+  padding: 0.8rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.categoryItemRow:hover {
+  border-color: var(--primary);
+  transform: translateX(4px);
+}
+
+.categoryItemRow span {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.deleteIconBtn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  opacity: 0.5;
+  transition: all 0.2s;
+  padding: 4px;
+}
+
+.deleteIconBtn:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* Toggle Switch Styling */
+.toggleContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
 /* Settings Tab Styles */
 .settingRow {
   display: flex;

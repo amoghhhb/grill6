@@ -88,6 +88,13 @@ export default function SellerDashboard() {
   const [isLoadingOrders, setIsLoadingOrders] = useState(false);
   const [menuItems, setMenuItems] = useState<any[]>([]);
   const [isLoadingMenu, setIsLoadingMenu] = useState(false);
+  
+  const [categories, setCategories] = useState<any[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [newDish, setNewDish] = useState({
     name: '',
@@ -146,6 +153,69 @@ export default function SellerDashboard() {
       setIsAcceptingOrders(user.user_metadata.is_open ?? true);
     }
   }, [user]);
+
+  const fetchCategories = async () => {
+    if (!user?.id) return;
+    setIsLoadingCategories(true);
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('seller_id', user.id)
+      .order('name', { ascending: true });
+    
+    if (!error && data) {
+      setCategories(data);
+    }
+    setIsLoadingCategories(false);
+  };
+
+  useEffect(() => {
+    if (isLoggedIn && user?.id) {
+      fetchCategories();
+    }
+  }, [isLoggedIn, user?.id]);
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim() || !user?.id) return;
+    setIsAddingCategory(true);
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .insert([{ name: newCategoryName.trim(), seller_id: user.id }]);
+      
+      if (error) throw error;
+      
+      setNewCategoryName('');
+      fetchCategories();
+      setToastMessage("✅ Category added successfully!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err: any) {
+      console.error("Failed to add category:", err.message);
+      alert("Error adding category: " + err.message);
+    } finally {
+      setIsAddingCategory(false);
+    }
+  };
+
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm("Are you sure? This will NOT delete dishes in this category, but they won't have a category assigned anymore.")) return;
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      fetchCategories();
+      setToastMessage("🗑️ Category deleted");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err: any) {
+      console.error("Failed to delete category:", err.message);
+    }
+  };
 
   const [selectedEmailUser, setSelectedEmailUser] = useState<{ email: string; name: string } | null>(null);
   const [taxEnabled, setTaxEnabled] = useState(false);
@@ -969,6 +1039,23 @@ export default function SellerDashboard() {
                 <button className={styles.closeBtn} onClick={() => setShowAddModal(false)}>×</button>
               </div>
               <form onSubmit={handleAddDish} className={styles.modalForm}>
+              <div className={styles.sectionHeader}>
+                <h3>Menu Management</h3>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                  <button 
+                    className={styles.addCategoryBtn}
+                    onClick={() => setShowCategoryModal(true)}
+                  >
+                    📂 Manage Categories
+                  </button>
+                  <button 
+                    className={styles.addDishBtn}
+                    onClick={() => setShowAddModal(true)}
+                  >
+                    + Add New Dish
+                  </button>
+                </div>
+              </div>
                 <div className={styles.formGroup}>
                   <label>Dish Name</label>
                   <input 
@@ -992,20 +1079,20 @@ export default function SellerDashboard() {
                       onChange={e => setNewDish({...newDish, price: e.target.value})}
                     />
                   </div>
-                  <div className={styles.formGroup}>
-                    <label>Category</label>
-                    <select 
-                      className={styles.select}
+                  <CustomSelect 
+                      options={categories.length > 0 
+                        ? categories.map(c => ({ label: c.name, value: c.name }))
+                        : [
+                            { label: 'Starters', value: 'Starters' },
+                            { label: 'Main Course', value: 'Main Course' },
+                            { label: 'Desserts', value: 'Desserts' },
+                            { label: 'Beverages', value: 'Beverages' }
+                          ]
+                      }
                       value={newDish.category}
-                      onChange={e => setNewDish({...newDish, category: e.target.value})}
-                    >
-                      <option value="Starters">Starters</option>
-                      <option value="Main Course">Main Course</option>
-                      <option value="Breads">Breads</option>
-                      <option value="Desserts">Desserts</option>
-                      <option value="Drinks">Drinks</option>
-                    </select>
-                  </div>
+                      onChange={(val) => setNewDish({ ...newDish, category: val })}
+                      label="Category"
+                    />
                 </div>
                 <div className={styles.formGroup}>
                   <label>Type</label>
