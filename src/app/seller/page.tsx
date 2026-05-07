@@ -124,6 +124,7 @@ export default function SellerDashboard() {
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [historyFilter, setHistoryFilter] = useState<'completed' | 'cancelled'>('completed');
   const [isCouponDisabled, setIsCouponDisabled] = useState(false);
+  const [isVerifyingPermissions, setIsVerifyingPermissions] = useState(true);
 
   const toggleOutletStatus = async () => {
     if (!selectedOutletId) return;
@@ -163,14 +164,26 @@ export default function SellerDashboard() {
     }
 
     // 2. Fetch Coupon permission status from global settings (Zero-SQL fallback)
-    const { data: settingsData } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('key', 'coupon_settings')
-      .maybeSingle();
-    
-    const disabledList = settingsData?.value?.disabled_outlets || [];
-    setIsCouponDisabled(disabledList.includes(selectedOutletId));
+    try {
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('key', 'coupon_settings')
+        .maybeSingle();
+      
+      const disabledList = settingsData?.value?.disabled_outlets || [];
+      const isDisabled = disabledList.includes(selectedOutletId);
+      setIsCouponDisabled(isDisabled);
+      
+      // Auto-redirect if on coupons and it's disabled
+      if (isDisabled && activeTab === 'coupons') {
+        setActiveTab('orders');
+      }
+    } catch (e) {
+      console.error("Permission check failed", e);
+    } finally {
+      setIsVerifyingPermissions(false);
+    }
   };
 
   const fetchAssignments = async () => {
@@ -675,7 +688,7 @@ export default function SellerDashboard() {
           <button className={`${styles.navBtn} ${activeTab === 'categories' ? styles.active : ''}`} onClick={() => setActiveTab('categories')}>
             Category Manager
           </button>
-          {!isCouponDisabled && (
+          {!isVerifyingPermissions && !isCouponDisabled && (
             <button className={`${styles.navBtn} ${activeTab === 'coupons' ? styles.active : ''}`} onClick={() => setActiveTab('coupons')}>
               Coupon Manager
             </button>
