@@ -104,29 +104,27 @@ export default function CartPage() {
       // Calculate today's start in UTC for the database query
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
+      // Fetch the current max for today ONCE to start with a good guess
+      const { data: maxOrder } = await supabase
+        .from('orders')
+        .select('daily_number')
+        .gte('created_at', todayStart)
+        .eq('outlet_id', selectedOutlet?.id)
+        .order('daily_number', { ascending: false })
+        .limit(1);
+
+      let nextDailyNum = 1;
+      if (maxOrder && maxOrder.length > 0) {
+        nextDailyNum = maxOrder[0].daily_number + 1;
+      }
+
       let orderData: any = null;
       let isUnique = false;
       let attempts = 0;
-      const MAX_ATTEMPTS = 15;
+      const MAX_ATTEMPTS = 30; // High limit for burst ordering
 
       while (!isUnique && attempts < MAX_ATTEMPTS) {
         attempts++;
-        
-        // 2. Fetch the current max for today to get the next number
-        // We do this INSIDE the loop to get the most fresh value after a collision
-        const { data: maxOrder } = await supabase
-          .from('orders')
-          .select('daily_number')
-          .gte('created_at', todayStart)
-          .eq('outlet_id', selectedOutlet?.id)
-          .order('daily_number', { ascending: false })
-          .limit(1);
-
-        let nextDailyNum = 1;
-        if (maxOrder && maxOrder.length > 0) {
-          nextDailyNum = maxOrder[0].daily_number + 1;
-        }
-
         const finalOrderId = `GR6-${dateStr}-${nextDailyNum}`;
         
         const { data, error: insertError } = await supabase
@@ -145,8 +143,12 @@ export default function CartPage() {
 
         if (insertError) {
           if (insertError.code === '23505') { // Duplicate key (Concurrency)
-            // Wait for a tiny random time to avoid repeat collisions (jitter)
-            await new Promise(res => setTimeout(res, Math.random() * 200));
+            // Just increment and try again immediately (Fast burst mode)
+            nextDailyNum++;
+            // Tiny jitter to allow other concurrent inserts to settle
+            if (attempts % 3 === 0) {
+              await new Promise(res => setTimeout(res, Math.random() * 100));
+            }
             continue;
           }
           throw insertError;
