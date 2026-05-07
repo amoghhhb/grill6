@@ -174,6 +174,9 @@ export default function InvoicePage() {
           <p>Thank you for ordering with Grill 6!</p>
           <p className={styles.taxNote}>*This is a computer generated invoice and does not require a signature.</p>
           <div className={styles.actions}>
+            <button onClick={() => router.push(`/order-status/${order.id}`)} className={styles.printBtn}>
+              📍 Track Order Live
+            </button>
             <button onClick={() => window.print()} className={styles.printBtn}>
               🖨️ Print Invoice
             </button>

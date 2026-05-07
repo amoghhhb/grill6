@@ -170,11 +170,19 @@ export default function CartPage() {
 
       // 4. Send Email Invoice
       try {
+        const trackingUrl = `${window.location.origin}/order-status/${orderData.id}`;
         const emailHtml = `
           <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
             <h2 style="color: #FF7E00; text-align: center;">GRILL 6 - ORDER CONFIRMED</h2>
             <p>Hi ${user.user_metadata?.full_name || 'Customer'},</p>
             <p>Thank you for ordering with Grill 6! Your order has been placed successfully.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${trackingUrl}" style="background: #FF7E00; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+                📍 Track Your Order Live
+              </a>
+            </div>
+
             <hr style="border: none; border-top: 1px solid #eee;" />
             <div style="margin: 20px 0;">
               <p><strong>Order ID:</strong> ${finalOrderId}</p>
