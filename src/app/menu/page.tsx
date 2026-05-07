@@ -111,7 +111,7 @@ function MenuContent() {
   return (
     <>
       <AnimatePresence>
-        {orderType === null && !modalDismissed && (
+        {isHydrated && orderType === null && !modalDismissed && (
           <OrderTypeModal onClose={() => setModalDismissed(true)} />
         )}
       </AnimatePresence>

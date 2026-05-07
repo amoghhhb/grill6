@@ -62,6 +62,7 @@ interface CartContextType {
   mfaPolicy: { is_active: boolean };
   selectedOutlet: Outlet | null;
   setSelectedOutlet: (outlet: Outlet | null) => void;
+  isHydrated: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -83,6 +84,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [mfaPolicy, setMfaPolicy] = useState({ is_active: false });
   const [isMfaVerified, setIsMfaVerified] = useState(false);
   const [selectedOutlet, setSelectedOutlet] = useState<Outlet | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const router = useRouter();
 
   const fetchGlobalSettings = async () => {
@@ -338,6 +340,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setUserLocation(JSON.parse(savedLoc));
       } catch (e) {}
     }
+    
+    setIsHydrated(true);
   }, []);
 
   // Save outlet to localStorage
@@ -445,8 +449,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isMfaVerified,
         setIsMfaVerified,
         mfaPolicy,
-        selectedOutlet,
         setSelectedOutlet,
+        isHydrated,
         logout: async () => {
           await supabase.auth.signOut();
           setIsLoggedIn(false);
