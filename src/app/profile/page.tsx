@@ -274,6 +274,8 @@ export default function ProfilePage() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     className={styles.orderCard}
+                    onClick={() => router.push(`/order-status/${order.id}`)}
+                    style={{ cursor: 'pointer' }}
                   >
                     <div className={styles.orderInfo}>
                       <div className={styles.orderMeta}>
@@ -283,7 +285,20 @@ export default function ProfilePage() {
                       <p className={styles.orderItems}>
                         {order.order_items.map((oi: any) => `${oi.item_name} (x${oi.quantity})`).join(', ')}
                       </p>
-                      <span className={styles.orderTotal}>₹{order.total_amount}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
+                        <span className={styles.orderTotal}>₹{order.total_amount}</span>
+                        {order.status === 'completed' && (
+                          <button 
+                            className={styles.reviewBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              alert("Review feature coming soon! Thank you for your feedback.");
+                            }}
+                          >
+                            ⭐ Review Order
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <motion.div 
                       key={`${order.id}-${order.status}`}

@@ -533,6 +533,28 @@ input:checked + .slider:before {
   }
 }
 
+.reviewBtn {
+  background: rgba(255, 126, 0, 0.1);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.reviewBtn:hover {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 126, 0, 0.2);
+  transform: translateY(-1px);
+}
+
 .loader {
   width: 40px;
   height: 40px;
