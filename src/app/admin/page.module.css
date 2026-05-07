@@ -256,7 +256,7 @@
 .input, .textarea, .select {
   width: 100%;
   padding: 0.8rem 1rem;
-  border-radius: var(--radius-sm);
+  border-radius: 12px; /* Premium rounded corners */
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.05);
   color: white;
@@ -556,6 +556,8 @@
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
 }
 
 .modalHeader h2 {
@@ -591,11 +593,11 @@
 
 .submitBtn {
   width: 100%;
-  padding: 1rem;
+  padding: 1.2rem;
   background: white;
   color: #111;
   border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 16px; /* Smooth rounded button */
   font-weight: 800;
   font-size: 1rem;
   cursor: pointer;
@@ -646,7 +648,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding: 0.8rem 1.2rem;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
