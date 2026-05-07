@@ -26,7 +26,7 @@ export default function CartPage() {
   const [isVerifyingCoupon, setIsVerifyingCoupon] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
-  const { clearCart } = useCart();
+  const { clearCart, setOrderType, setSelectedOutlet, setDistance, setUserLocation } = useCart();
 
   const handleApplyCoupon = async () => {
     if (!couponCode) return;
@@ -169,8 +169,12 @@ export default function CartPage() {
       if (itemsError) throw itemsError;
 
       // 5. Success UI
-      // 5. Success - Redirect to tracking page
+      // 5. Success - Redirect to tracking page and clear session selection
       clearCart();
+      setOrderType(null);
+      setSelectedOutlet(null);
+      setDistance(null);
+      setUserLocation(null);
       router.push(`/order-status/${orderData.id}`);
     } catch (err: any) {
       console.error("Order failed:", err);

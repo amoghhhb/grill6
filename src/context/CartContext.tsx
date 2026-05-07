@@ -321,6 +321,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         console.error("Failed to parse outlet from local storage");
       }
     }
+
+    const savedOrderType = localStorage.getItem('order_type');
+    if (savedOrderType) {
+      setOrderType(savedOrderType as any);
+    }
+
+    const savedDist = localStorage.getItem('user_distance');
+    if (savedDist) {
+      setDistance(parseFloat(savedDist));
+    }
+
+    const savedLoc = localStorage.getItem('user_lat_lng');
+    if (savedLoc) {
+      try {
+        setUserLocation(JSON.parse(savedLoc));
+      } catch (e) {}
+    }
   }, []);
 
   // Save outlet to localStorage
@@ -336,6 +353,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     localStorage.setItem('grill6_cart', JSON.stringify(cart));
   }, [cart]);
+
+  useEffect(() => {
+    if (orderType) localStorage.setItem('order_type', orderType);
+    else localStorage.removeItem('order_type');
+  }, [orderType]);
+
+  useEffect(() => {
+    if (distance) localStorage.setItem('user_distance', distance.toString());
+    else localStorage.removeItem('user_distance');
+  }, [distance]);
+
+  useEffect(() => {
+    if (userLocation) localStorage.setItem('user_lat_lng', JSON.stringify(userLocation));
+    else localStorage.removeItem('user_lat_lng');
+  }, [userLocation]);
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
@@ -422,7 +454,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           setUserRole(null);
           setIsBanned(false);
           localStorage.removeItem('user_location');
+          localStorage.removeItem('order_type');
+          localStorage.removeItem('selected_outlet');
+          localStorage.removeItem('user_distance');
+          localStorage.removeItem('user_lat_lng');
           setShowLogoutMessage(true);
+          setOrderType(null);
+          setSelectedOutlet(null);
           router.push('/');
         },
         login: () => setIsLoggedIn(true),
