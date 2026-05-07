@@ -189,7 +189,7 @@ export default function CartPage() {
 
             <hr style="border: none; border-top: 1px solid #eee;" />
             <div style="margin: 20px 0;">
-              <p><strong>Order ID:</strong> ${finalOrderId}</p>
+              <p><strong>Order ID:</strong> ${orderData.order_id_display}</p>
               <p><strong>Outlet:</strong> ${selectedOutlet?.name}</p>
               <p><strong>Order Type:</strong> ${orderType?.toUpperCase()}</p>
             </div>
@@ -226,7 +226,7 @@ export default function CartPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             to: user.email,
-            subject: `Your Grill 6 Invoice - Order #${finalOrderId}`,
+            subject: `Your Grill 6 Invoice - Order #${orderData.order_id_display}`,
             html: emailHtml
           })
         });
