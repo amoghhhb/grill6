@@ -305,7 +305,8 @@ export default function AdminDashboard() {
     delivery_radius: '5',
     latitude: '',
     longitude: '',
-    is_open: true
+    is_open: true,
+    coupons_enabled: true
   });
   const [isAssigning, setIsAssigning] = useState(false);
 
@@ -688,6 +689,22 @@ export default function AdminDashboard() {
     }
   };
  
+  const handleToggleCoupons = async (outletId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('outlets')
+        .update({ coupons_enabled: !currentStatus })
+        .eq('id', outletId);
+      
+      if (error) throw error;
+      fetchOutlets();
+      setToastMessage(!currentStatus ? "🎟️ Coupons Enabled for Outlet" : "🚫 Coupons Disabled for Outlet");
+      setShowToast(true);
+    } catch (e: any) {
+      alert("Update failed: " + e.message);
+    }
+  };
+
   const filteredUsers = usersList.filter(user => 
     user.first_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.last_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -979,9 +996,14 @@ export default function AdminDashboard() {
                 <div key={outlet.id} className={styles.outletCard}>
                   <div className={styles.outletHeader}>
                     <h3>{outlet.name}</h3>
-                    <span className={`${styles.statusBadge} ${outlet.is_open ? styles.pending : styles.cancelled}`}>
-                      {outlet.is_open ? 'OPEN' : 'CLOSED'}
-                    </span>
+                    <div className={styles.headerBadges}>
+                      <span className={`${styles.statusBadge} ${outlet.coupons_enabled ? styles.available : styles.unavailable}`} style={{ fontSize: '0.6rem' }}>
+                        {outlet.coupons_enabled ? 'COUPONS ON' : 'COUPONS OFF'}
+                      </span>
+                      <span className={`${styles.statusBadge} ${outlet.is_open ? styles.pending : styles.cancelled}`}>
+                        {outlet.is_open ? 'OPEN' : 'CLOSED'}
+                      </span>
+                    </div>
                   </div>
                   <p className={styles.outletAddr}>{outlet.address}</p>
                   
@@ -1006,6 +1028,28 @@ export default function AdminDashboard() {
                         disabled={isAssigning}
                       />
                     </div>
+                  </div>
+
+                  <div className={styles.outletActions}>
+                    <div className={styles.toggleSetting}>
+                      <span>Allow Coupons</span>
+                      <div 
+                        className={`${styles.simpleSwitch} ${outlet.coupons_enabled ? styles.switchOn : styles.switchOff}`}
+                        onClick={() => handleToggleCoupons(outlet.id, outlet.coupons_enabled)}
+                      >
+                        <div className={styles.switchHandle} />
+                      </div>
+                    </div>
+                    <button 
+                      className={`${styles.actionBtn} ${outlet.is_open ? styles.dangerBtn : styles.successBtn}`}
+                      style={{ padding: '0.4rem 1rem', fontSize: '0.8rem' }}
+                      onClick={async () => {
+                        const { error } = await supabase.from('outlets').update({ is_open: !outlet.is_open }).eq('id', outlet.id);
+                        if (!error) fetchOutlets();
+                      }}
+                    >
+                      {outlet.is_open ? 'Close Store' : 'Open Store'}
+                    </button>
                   </div>
                 </div>
               ))}

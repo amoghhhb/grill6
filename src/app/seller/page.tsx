@@ -204,9 +204,15 @@ export default function SellerDashboard() {
         })
         .subscribe();
 
+      // Auto-redirect from coupons if disabled
+      const currentOutlet = assignedOutlets.find(o => o.id === selectedOutletId);
+      if (currentOutlet && currentOutlet.coupons_enabled === false && activeTab === 'coupons') {
+        setActiveTab('orders');
+      }
+
       return () => { supabase.removeChannel(channel); };
     }
-  }, [selectedOutletId]);
+  }, [selectedOutletId, assignedOutlets, activeTab]);
 
   const fetchCategories = async () => {
     if (!user?.id) return;
@@ -647,9 +653,11 @@ export default function SellerDashboard() {
           <button className={`${styles.navBtn} ${activeTab === 'categories' ? styles.active : ''}`} onClick={() => setActiveTab('categories')}>
             Category Manager
           </button>
-          <button className={`${styles.navBtn} ${activeTab === 'coupons' ? styles.active : ''}`} onClick={() => setActiveTab('coupons')}>
-            Coupon Manager
-          </button>
+          {assignedOutlets.find(o => o.id === selectedOutletId)?.coupons_enabled !== false && (
+            <button className={`${styles.navBtn} ${activeTab === 'coupons' ? styles.active : ''}`} onClick={() => setActiveTab('coupons')}>
+              Coupon Manager
+            </button>
+          )}
           <button className={`${styles.navBtn} ${activeTab === 'analytics' ? styles.active : ''}`} onClick={() => setActiveTab('analytics')}>
             Analytics
           </button>
