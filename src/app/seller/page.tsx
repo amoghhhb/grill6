@@ -834,7 +834,7 @@ export default function SellerDashboard() {
                             <span className={styles.btnIcon}>✉️</span> Email
                           </button>
                         </td>
-                      </tr>
+                      </motion.tr>
                     ))}
                     </AnimatePresence>
                     {orders.filter(o => o.status === historyFilter).length === 0 && !isLoadingOrders && (
