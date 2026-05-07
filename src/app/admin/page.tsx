@@ -289,7 +289,8 @@ export default function AdminDashboard() {
     min_order: '0',
     target_type: 'all',
     target_details: '',
-    status: 'active'
+    status: 'active',
+    outlet_id: 'all'
   });
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
   const [isEditingCoupon, setIsEditingCoupon] = useState(false);
@@ -482,7 +483,8 @@ export default function AdminDashboard() {
       min_order: coupon.min_order.toString(),
       target_type: coupon.target_type,
       target_details: coupon.target_details || '',
-      status: coupon.status
+      status: coupon.status,
+      outlet_id: coupon.outlet_id || 'all'
     });
     setIsEditingCoupon(true);
     setEditingCouponId(coupon.id);
@@ -500,7 +502,8 @@ export default function AdminDashboard() {
         target_type: newCoupon.target_type,
         target_details: newCoupon.target_details,
         status: newCoupon.status,
-        seller_id: null // Admin coupons are platform-wide
+        outlet_id: newCoupon.outlet_id === 'all' ? null : newCoupon.outlet_id,
+        seller_id: null // Admin coupons are managed by system
       };
 
       if (isEditingCoupon && editingCouponId) {
@@ -519,7 +522,7 @@ export default function AdminDashboard() {
       setShowCouponModal(false);
       setIsEditingCoupon(false);
       setEditingCouponId(null);
-      setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active' });
+      setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active', outlet_id: 'all' });
       fetchCoupons();
       setToastMessage(isEditingCoupon ? "🎟️ Global Coupon Updated!" : "🎟️ New Global Coupon Created!");
       setShowToast(true);
@@ -557,6 +560,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchDashboardData();
     fetchSettings();
+    fetchOutlets(); // Always fetch outlets for scoped promotions
     if (activeTab === 'coupons') {
       fetchCoupons();
     }
@@ -1385,15 +1389,26 @@ export default function AdminDashboard() {
                   placeholder="0"
                 />
               </div>
-              <CustomSelect 
-                label="Target Audience"
-                value={newCoupon.target_type}
-                onChange={(val) => setNewCoupon({...newCoupon, target_type: val, target_details: ''})}
-                options={[
-                  { value: 'all', label: 'All Users (Global)' },
-                  { value: 'particular', label: 'Particular User (by ID)' }
-                ]}
-              />
+              <div className={styles.formGrid}>
+                <CustomSelect 
+                  label="Target Audience"
+                  value={newCoupon.target_type}
+                  onChange={(val) => setNewCoupon({...newCoupon, target_type: val, target_details: ''})}
+                  options={[
+                    { value: 'all', label: 'All Users (Global)' },
+                    { value: 'particular', label: 'Particular User (by ID)' }
+                  ]}
+                />
+                <CustomSelect 
+                  label="Promotion Scope"
+                  value={newCoupon.outlet_id}
+                  onChange={(val) => setNewCoupon({...newCoupon, outlet_id: val})}
+                  options={[
+                    { value: 'all', label: 'Platform-Wide (Global)' },
+                    ...outlets.map(o => ({ value: o.id, label: o.name }))
+                  ]}
+                />
+              </div>
               {newCoupon.target_type === 'particular' && (
                 <div className={styles.formGroup}>
                   <label>Recipient User ID</label>
