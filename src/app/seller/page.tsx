@@ -633,7 +633,12 @@ export default function SellerDashboard() {
 
         <nav className={styles.nav}>
           <button className={`${styles.navBtn} ${activeTab === 'orders' ? styles.active : ''}`} onClick={() => setActiveTab('orders')}>
-            Live Orders {orders.length > 0 && <span className={styles.badge}>{orders.length}</span>}
+            Live Orders {orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)).length > 0 && (
+              <span className={styles.badge}>{orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)).length}</span>
+            )}
+          </button>
+          <button className={`${styles.navBtn} ${activeTab === 'history' ? styles.active : ''}`} onClick={() => setActiveTab('history')}>
+            Order History
           </button>
           <button className={`${styles.navBtn} ${activeTab === 'menu' ? styles.active : ''}`} onClick={() => setActiveTab('menu')}>
             Menu Manager
@@ -674,7 +679,7 @@ export default function SellerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map(order => (
+                  {orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)).map(order => (
                     <tr key={order.id}>
                       <td className={styles.highlight}>{order.order_id_display}</td>
                       <td>
@@ -740,7 +745,7 @@ export default function SellerDashboard() {
                       </td>
                     </tr>
                   ))}
-                  {orders.length === 0 && !isLoadingOrders && (
+                  {orders.filter(o => ['pending', 'preparing', 'ready'].includes(o.status)).length === 0 && !isLoadingOrders && (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No live orders found.</td>
                     </tr>
@@ -748,6 +753,71 @@ export default function SellerDashboard() {
                   {isLoadingOrders && (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>Loading live orders...</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'history' && (
+          <div className="animate-fade-in">
+            <h2 className={styles.pageTitle}>Order History</h2>
+            
+            <div className={styles.tableCard}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Order ID</th>
+                    <th>Details</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.filter(o => ['completed', 'cancelled'].includes(o.status)).map(order => (
+                    <tr key={order.id}>
+                      <td className={styles.highlight}>{order.order_id_display}</td>
+                      <td>
+                        <strong>
+                          {order.profiles?.first_name 
+                            ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                            : order.profiles?.email || 'Customer'}
+                        </strong><br/>
+                        <small className={styles.subtext}>
+                          {order.order_items?.map((item: any) => `${item.quantity}x ${item.item_name}`).join(', ')}
+                        </small>
+                      </td>
+                      <td><span className={styles.typeBadge}>{order.order_type}</span></td>
+                      <td className={styles.amount}>
+                        ₹{order.total_amount}
+                      </td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${styles[order.status] || styles.pending}`}>
+                          {order.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <button 
+                          className={styles.emailBtn} 
+                          onClick={() => setSelectedEmailUser({ 
+                            email: order.profiles?.email || '', 
+                            name: order.profiles?.first_name 
+                              ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                              : 'Customer' 
+                          })}
+                        >
+                          <span className={styles.btnIcon}>✉️</span> Email
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {orders.filter(o => ['completed', 'cancelled'].includes(o.status)).length === 0 && !isLoadingOrders && (
+                    <tr>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No historical orders found.</td>
                     </tr>
                   )}
                 </tbody>
