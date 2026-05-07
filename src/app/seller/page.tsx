@@ -1269,31 +1269,6 @@ export default function SellerDashboard() {
             </form>
           </div>
         )}
-        {activeTab === 'settings' && (
-          <div className="animate-fade-in">
-            <h2 className={styles.pageTitle}>Outlet Settings</h2>
-            <div className={styles.formCard}>
-              <div className={styles.settingRow}>
-                <div className={styles.settingInfo}>
-                  <h3>Tax Configuration</h3>
-                  <p>Enable or disable tax calculation for all orders at this outlet.</p>
-                </div>
-                <div className={styles.settingAction}>
-                  <label className={styles.switch}>
-                    <input 
-                      type="checkbox" 
-                      checked={taxEnabled} 
-                      disabled={isUpdatingSettings}
-                      onChange={(e) => handleUpdateTaxSetting(e.target.checked)}
-                    />
-                    <span className={styles.slider}></span>
-                  </label>
-                  <span className={styles.statusLabel}>{taxEnabled ? 'Tax Enabled' : 'Tax Disabled'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       <AnimatePresence>
