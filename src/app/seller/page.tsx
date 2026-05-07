@@ -771,8 +771,8 @@ export default function SellerDashboard() {
                 <CustomSelect 
                   label="Viewing Archive"
                   options={[
-                    { value: 'completed', label: '✅ Completed Orders' },
-                    { value: 'cancelled', label: '❌ Cancelled Orders' }
+                    { value: 'completed', label: 'Completed Orders' },
+                    { value: 'cancelled', label: 'Cancelled Orders' }
                   ]}
                   value={historyFilter}
                   onChange={(val) => setHistoryFilter(val as any)}
