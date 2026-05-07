@@ -78,9 +78,8 @@
 .starBtn {
   background: none;
   border: none;
-  font-size: 2.8rem;
   cursor: pointer;
-  color: #e0e0e0; /* Clearly visible light grey */
+  color: #ccc; /* Visible grey for the outline */
   transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   padding: 0;
   display: flex;
@@ -89,14 +88,17 @@
 }
 
 .starBtn.active {
-  color: #FFD700; /* Gold */
-  text-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-  transform: scale(1.1);
+  color: #FFD700; /* Gold for both fill and stroke when active */
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
 }
 
 .starBtn:hover {
-  transform: scale(1.2);
-  color: #FFC107; /* Slightly warmer gold on hover */
+  transform: scale(1.15);
+  color: #FFC107;
+}
+
+.starBtn svg {
+  transition: transform 0.2s;
 }
 
 .ratingLabel {
