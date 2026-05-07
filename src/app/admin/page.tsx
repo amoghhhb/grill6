@@ -292,6 +292,8 @@ export default function AdminDashboard() {
     status: 'active'
   });
   const [isLoadingCoupons, setIsLoadingCoupons] = useState(false);
+  const [isEditingCoupon, setIsEditingCoupon] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   
   // Maintenance Mode State
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
@@ -472,27 +474,58 @@ export default function AdminDashboard() {
     }
   };
 
+  const openEditCouponModal = (coupon: any) => {
+    setNewCoupon({
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value.toString(),
+      min_order: coupon.min_order.toString(),
+      target_type: coupon.target_type,
+      target_details: coupon.target_details || '',
+      status: coupon.status
+    });
+    setIsEditingCoupon(true);
+    setEditingCouponId(coupon.id);
+    setShowCouponModal(true);
+  };
+
   const handleAddCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase
-        .from('coupons')
-        .insert([{
-          ...newCoupon,
-          discount_value: parseFloat(newCoupon.discount_value),
-          min_order: parseFloat(newCoupon.min_order),
-          seller_id: null // Admin coupons are platform-wide
-        }]);
+      const couponData = {
+        code: newCoupon.code,
+        discount_type: newCoupon.discount_type,
+        discount_value: parseFloat(newCoupon.discount_value),
+        min_order: parseFloat(newCoupon.min_order),
+        target_type: newCoupon.target_type,
+        target_details: newCoupon.target_details,
+        status: newCoupon.status,
+        seller_id: null // Admin coupons are platform-wide
+      };
 
-      if (error) throw error;
+      if (isEditingCoupon && editingCouponId) {
+        const { error } = await supabase
+          .from('coupons')
+          .update(couponData)
+          .eq('id', editingCouponId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('coupons')
+          .insert([couponData]);
+        if (error) throw error;
+      }
       
       setShowCouponModal(false);
+      setIsEditingCoupon(false);
+      setEditingCouponId(null);
       setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active' });
       fetchCoupons();
-      setToastMessage("🎟️ New Global Coupon Created!");
+      setToastMessage(isEditingCoupon ? "🎟️ Global Coupon Updated!" : "🎟️ New Global Coupon Created!");
       setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (err: any) {
-      alert("Failed to create coupon: " + err.message);
+      alert("Action failed: " + err.message);
     }
   };
 
@@ -965,7 +998,12 @@ export default function AdminDashboard() {
           <div className="animate-fade-in">
             <div className={styles.headerFlex}>
               <h2 className={styles.pageTitle}>Universal Coupon Manager</h2>
-              <button className={styles.primaryBtn} onClick={() => setShowCouponModal(true)}>+ Create Global Coupon</button>
+              <button className={styles.primaryBtn} onClick={() => {
+                setIsEditingCoupon(false);
+                setEditingCouponId(null);
+                setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active' });
+                setShowCouponModal(true);
+              }}>+ Create Global Coupon</button>
             </div>
             
             {isLoadingCoupons ? (
@@ -1013,7 +1051,10 @@ export default function AdminDashboard() {
                           </button>
                         </td>
                         <td>
-                          <button className={styles.dangerBtn} onClick={() => deleteCoupon(coupon.id)}>Delete</button>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className={styles.actionBtn} style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem' }} onClick={() => openEditCouponModal(coupon)}>Edit</button>
+                            <button className={styles.dangerBtn} onClick={() => deleteCoupon(coupon.id)}>Delete</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1296,7 +1337,7 @@ export default function AdminDashboard() {
         <div className={styles.modalOverlay}>
           <div className={styles.modalContent}>
             <div className={styles.modalHeader}>
-              <h2>Create Global Promotion</h2>
+              <h2>{isEditingCoupon ? 'Edit Global Promotion' : 'Create Global Promotion'}</h2>
               <button className={styles.closeBtn} onClick={() => setShowCouponModal(false)}>×</button>
             </div>
             <form onSubmit={handleAddCoupon} className={styles.modalForm}>
@@ -1367,7 +1408,7 @@ export default function AdminDashboard() {
                 </div>
               )}
               <button type="submit" className={styles.submitBtn}>
-                Launch Global Coupon
+                {isEditingCoupon ? 'Update Global Coupon' : 'Launch Global Coupon'}
               </button>
             </form>
           </div>
