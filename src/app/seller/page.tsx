@@ -147,6 +147,8 @@ export default function SellerDashboard() {
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
   const [isEditingCoupon, setIsEditingCoupon] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   const toggleOutletStatus = async () => {
     if (!selectedOutletId) return;
@@ -295,23 +297,40 @@ export default function SellerDashboard() {
     if (!newCategoryName.trim() || !user?.id) return;
     setIsAddingCategory(true);
     try {
-      const { error } = await supabase
-        .from('categories')
-        .insert([{ name: newCategoryName.trim(), seller_id: user.id }]);
-      
-      if (error) throw error;
+      if (isEditingCategory && editingCategoryId) {
+        const { error } = await supabase
+          .from('categories')
+          .update({ name: newCategoryName.trim() })
+          .eq('id', editingCategoryId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('categories')
+          .insert([{ name: newCategoryName.trim(), seller_id: user.id }]);
+        if (error) throw error;
+      }
       
       setNewCategoryName('');
+      setIsEditingCategory(false);
+      setEditingCategoryId(null);
       fetchCategories();
-      setToastMessage("✅ Category added successfully!");
+      setToastMessage(isEditingCategory ? "✅ Category renamed!" : "✅ Category added successfully!");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (err: any) {
-      console.error("Failed to add category:", err.message);
-      alert("Error adding category: " + err.message);
+      console.error("Failed to handle category:", err.message);
+      alert("Error: " + err.message);
     } finally {
       setIsAddingCategory(false);
     }
+  };
+
+  const openEditCategory = (cat: any) => {
+    setNewCategoryName(cat.name);
+    setIsEditingCategory(true);
+    setEditingCategoryId(cat.id);
+    // Scroll to input for better UX
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -1076,7 +1095,7 @@ export default function SellerDashboard() {
                 
                 <div className={styles.addCategoryRow}>
                   <div className={styles.categoryInputWrapper}>
-                    <label>New Category Name</label>
+                    <label>{isEditingCategory ? 'Edit Category Name' : 'New Category Name'}</label>
                     <input 
                       type="text" 
                       placeholder="e.g. Burgers, Pizza, Desserts..." 
@@ -1086,13 +1105,28 @@ export default function SellerDashboard() {
                       onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                     />
                   </div>
-                  <button 
-                    onClick={handleAddCategory}
-                    disabled={isAddingCategory || !newCategoryName.trim()}
-                    className={styles.addCategoryBtn}
-                  >
-                    {isAddingCategory ? '✨ Adding...' : '🚀 Create Category'}
-                  </button>
+                  <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
+                    <button 
+                      onClick={handleAddCategory}
+                      disabled={isAddingCategory || !newCategoryName.trim()}
+                      className={styles.addCategoryBtn}
+                    >
+                      {isAddingCategory ? '✨ Saving...' : (isEditingCategory ? '💾 Update Name' : '🚀 Create Category')}
+                    </button>
+                    {isEditingCategory && (
+                      <button 
+                        onClick={() => {
+                          setIsEditingCategory(false);
+                          setEditingCategoryId(null);
+                          setNewCategoryName('');
+                        }}
+                        className={styles.secondaryBtn}
+                        style={{ height: '54px', padding: '0 1.5rem' }}
+                      >
+                        Cancel
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className={styles.categoryList}>
@@ -1125,13 +1159,23 @@ export default function SellerDashboard() {
                               </div>
                               <span className={styles.categoryName}>{cat.name}</span>
                             </div>
-                            <button 
-                              onClick={() => handleDeleteCategory(cat.id)}
-                              className={styles.deleteBtn}
-                              title="Delete Category"
-                            >
-                              <span style={{ fontSize: '1.2rem' }}>×</span>
-                            </button>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                              <button 
+                                onClick={() => openEditCategory(cat)}
+                                className={styles.editBtn}
+                                style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '1rem', opacity: 0.6 }}
+                                title="Edit Category"
+                              >
+                                ✏️
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteCategory(cat.id)}
+                                className={styles.deleteBtn}
+                                title="Delete Category"
+                              >
+                                <span style={{ fontSize: '1.2rem' }}>×</span>
+                              </button>
+                            </div>
                           </motion.div>
                         ))}
                       </AnimatePresence>
