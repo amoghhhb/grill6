@@ -56,6 +56,12 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
   useEffect(() => {
     setMounted(true);
     fetchOutlets();
+    // Try to get location for distance sorting if permission is already granted
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setLocalUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      }, () => {});
+    }
     return () => setMounted(false);
   }, []);
 
@@ -72,6 +78,26 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
       setIsLoadingOutlets(false);
     }
   };
+
+  const sortedOutlets = React.useMemo(() => {
+    if (!localUserLoc || outlets.length === 0) return outlets;
+    
+    return [...outlets].sort((a, b) => {
+      const distA = calculateDistance(localUserLoc.lat, localUserLoc.lng, a.latitude, a.longitude);
+      const distB = calculateDistance(localUserLoc.lat, localUserLoc.lng, b.latitude, b.longitude);
+      return distA - distB;
+    });
+  }, [outlets, localUserLoc]);
+
+  const nearestOutletId = React.useMemo(() => {
+    if (!localUserLoc || outlets.length === 0) return null;
+    let minInfo = { id: '', dist: Infinity };
+    outlets.forEach(o => {
+      const d = calculateDistance(localUserLoc.lat, localUserLoc.lng, o.latitude, o.longitude);
+      if (d < minInfo.dist) minInfo = { id: o.id, dist: d };
+    });
+    return minInfo.id;
+  }, [outlets, localUserLoc]);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -300,7 +326,7 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
           <div className={styles.outletSelectionList}>
             {isLoadingOutlets ? (
               <p>Finding active outlets...</p>
-            ) : outlets.map(outlet => (
+            ) : sortedOutlets.map(outlet => (
               <motion.div
                 key={outlet.id}
                 whileHover={{ scale: 1.02 }}
@@ -312,8 +338,18 @@ export default function OrderTypeModal({ onClose }: OrderTypeModalProps) {
                 }}
               >
                 <div className={styles.outletInfo}>
-                  <h4>{outlet.name}</h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h4>{outlet.name}</h4>
+                    {outlet.id === nearestOutletId && (
+                      <span className={styles.nearestBadge}>Nearest to You</span>
+                    )}
+                  </div>
                   <p>{outlet.address}</p>
+                  {localUserLoc && (
+                    <p className={styles.distMeta}>
+                      {calculateDistance(localUserLoc.lat, localUserLoc.lng, outlet.latitude, outlet.longitude).toFixed(1)} km away
+                    </p>
+                  )}
                 </div>
                 <div className={styles.selectArrow}>→</div>
               </motion.div>
