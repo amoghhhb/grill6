@@ -52,8 +52,21 @@ function MenuContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [activeCategory, setActiveCategory] = useState('Recommended');
-  const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet, isHydrated } = useCart();
+  const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet, isHydrated, setOrderType, clearCart } = useCart();
   const [modalDismissed, setModalDismissed] = useState(false);
+
+  const handleChangeOutlet = () => {
+    if (cart.length > 0) {
+      if (confirm("Changing your outlet will clear your current cart. Continue?")) {
+        clearCart();
+        setOrderType(null);
+        setModalDismissed(false);
+      }
+    } else {
+      setOrderType(null);
+      setModalDismissed(false);
+    }
+  };
 
   useEffect(() => {
     const fetchMenu = async () => {
@@ -141,6 +154,19 @@ function MenuContent() {
         </aside>
 
         <main className={styles.menuFeed}>
+          {selectedOutlet && (
+            <div className={styles.outletBar}>
+              <div className={styles.outletBarInfo}>
+                <span className={styles.outletBarLabel}>Ordering from:</span>
+                <span className={styles.outletBarName}>{selectedOutlet.name}</span>
+                <span className={styles.outletBarType}>• {orderType === 'takeaway' ? 'Takeaway' : 'Dine-in'}</span>
+              </div>
+              <button className={styles.changeOutletBtn} onClick={handleChangeOutlet}>
+                Change
+              </button>
+            </div>
+          )}
+
           <div className={styles.filterGroup}>
             <label className={`${styles.filterLabel} ${filter === 'all' ? styles.activeFilter : ''}`}>
               <input 

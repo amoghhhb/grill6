@@ -153,6 +153,62 @@
 /* Menu Feed */
 .menuFeed {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.outletBar {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.outletBarInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.outletBarLabel {
+  color: var(--text-secondary);
+}
+
+.outletBarName {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.outletBarType {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.changeOutletBtn {
+  background: transparent;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.4rem 1rem;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.changeOutletBtn:hover {
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 4px 12px rgba(255, 126, 0, 0.2);
 }
 
 .sectionTitle {
