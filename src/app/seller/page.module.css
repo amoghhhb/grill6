@@ -169,6 +169,16 @@
   margin-bottom: 2rem;
 }
 
+.sectionHeader {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .headerFlex {
   display: flex;
   justify-content: space-between;

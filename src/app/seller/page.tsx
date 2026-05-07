@@ -765,63 +765,130 @@ export default function SellerDashboard() {
           <div className="animate-fade-in">
             <h2 className={styles.pageTitle}>Order History</h2>
             
-            <div className={styles.tableCard}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Order ID</th>
-                    <th>Details</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.filter(o => ['completed', 'cancelled'].includes(o.status)).map(order => (
-                    <tr key={order.id}>
-                      <td className={styles.highlight}>{order.order_id_display}</td>
-                      <td>
-                        <strong>
-                          {order.profiles?.first_name 
-                            ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
-                            : order.profiles?.email || 'Customer'}
-                        </strong><br/>
-                        <small className={styles.subtext}>
-                          {order.order_items?.map((item: any) => `${item.quantity}x ${item.item_name}`).join(', ')}
-                        </small>
-                      </td>
-                      <td><span className={styles.typeBadge}>{order.order_type}</span></td>
-                      <td className={styles.amount}>
-                        ₹{order.total_amount}
-                      </td>
-                      <td>
-                        <span className={`${styles.statusBadge} ${styles[order.status] || styles.pending}`}>
-                          {order.status.toUpperCase()}
-                        </span>
-                      </td>
-                      <td>
-                        <button 
-                          className={styles.emailBtn} 
-                          onClick={() => setSelectedEmailUser({ 
-                            email: order.profiles?.email || '', 
-                            name: order.profiles?.first_name 
-                              ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
-                              : 'Customer' 
-                          })}
-                        >
-                          <span className={styles.btnIcon}>✉️</span> Email
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {orders.filter(o => ['completed', 'cancelled'].includes(o.status)).length === 0 && !isLoadingOrders && (
+            {/* Completed Orders Section */}
+            <div style={{ marginBottom: '3rem' }}>
+              <h3 className={styles.sectionHeader}>Completed Orders</h3>
+              <div className={styles.tableCard}>
+                <table className={styles.table}>
+                  <thead>
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No historical orders found.</td>
+                      <th>Order ID</th>
+                      <th>Details</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {orders.filter(o => o.status === 'completed').map(order => (
+                      <tr key={order.id}>
+                        <td className={styles.highlight}>{order.order_id_display}</td>
+                        <td>
+                          <strong>
+                            {order.profiles?.first_name 
+                              ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                              : order.profiles?.email || 'Customer'}
+                          </strong><br/>
+                          <small className={styles.subtext}>
+                            {order.order_items?.map((item: any) => `${item.quantity}x ${item.item_name}`).join(', ')}
+                          </small>
+                        </td>
+                        <td><span className={styles.typeBadge}>{order.order_type}</span></td>
+                        <td className={styles.amount}>
+                          ₹{order.total_amount}
+                        </td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${styles[order.status] || styles.pending}`}>
+                            {order.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                            className={styles.emailBtn} 
+                            onClick={() => setSelectedEmailUser({ 
+                              email: order.profiles?.email || '', 
+                              name: order.profiles?.first_name 
+                                ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                                : 'Customer' 
+                            })}
+                          >
+                            <span className={styles.btnIcon}>✉️</span> Email
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {orders.filter(o => o.status === 'completed').length === 0 && !isLoadingOrders && (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No completed orders found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Cancelled Orders Section */}
+            <div>
+              <h3 className={styles.sectionHeader} style={{ color: 'var(--destructive)' }}>Cancelled Orders</h3>
+              <div className={styles.tableCard}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Details</th>
+                      <th>Type</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.filter(o => o.status === 'cancelled').map(order => (
+                      <tr key={order.id}>
+                        <td className={styles.highlight}>{order.order_id_display}</td>
+                        <td>
+                          <strong>
+                            {order.profiles?.first_name 
+                              ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                              : order.profiles?.email || 'Customer'}
+                          </strong><br/>
+                          <small className={styles.subtext}>
+                            {order.order_items?.map((item: any) => `${item.quantity}x ${item.item_name}`).join(', ')}
+                          </small>
+                        </td>
+                        <td><span className={styles.typeBadge}>{order.order_type}</span></td>
+                        <td className={styles.amount}>
+                          ₹{order.total_amount}
+                        </td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${styles[order.status] || styles.pending}`}>
+                            {order.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td>
+                          <button 
+                            className={styles.emailBtn} 
+                            onClick={() => setSelectedEmailUser({ 
+                              email: order.profiles?.email || '', 
+                              name: order.profiles?.first_name 
+                                ? `${order.profiles.first_name} ${order.profiles.last_name || ''}`.trim()
+                                : 'Customer' 
+                            })}
+                          >
+                            <span className={styles.btnIcon}>✉️</span> Email
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {orders.filter(o => o.status === 'cancelled').length === 0 && !isLoadingOrders && (
+                      <tr>
+                        <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>No cancelled orders found.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
