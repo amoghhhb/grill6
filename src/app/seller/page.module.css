@@ -505,13 +505,14 @@
   background: var(--card);
   width: 90%;
   max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
   border-radius: var(--radius-lg);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   position: relative;
   border: 1px solid var(--border);
-  margin-bottom: 2rem; 
+  overflow: hidden; /* Prevent scrollbar from hitting rounded corners */
 }
 
 .modalHeader {
@@ -546,6 +547,26 @@
 
 .modalForm {
   padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Custom Minimalist Scrollbar */
+.modalForm::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modalForm::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modalForm::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.modalForm::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 .formGrid {
