@@ -142,6 +142,12 @@ export default function SellerDashboard() {
   const [isCouponDisabled, setIsCouponDisabled] = useState(false);
   const [isVerifyingPermissions, setIsVerifyingPermissions] = useState(true);
 
+  // Editing States
+  const [isEditingDish, setIsEditingDish] = useState(false);
+  const [editingDishId, setEditingDishId] = useState<string | null>(null);
+  const [isEditingCoupon, setIsEditingCoupon] = useState(false);
+  const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
+
   const toggleOutletStatus = async () => {
     if (!selectedOutletId) return;
     setIsUpdatingStatus(true);
@@ -916,7 +922,14 @@ export default function SellerDashboard() {
           <div className="animate-fade-in">
             <div className={styles.headerFlex}>
               <h2 className={styles.pageTitle}>Manage Menu</h2>
-              <button className={styles.primaryBtn} onClick={() => setShowAddModal(true)}>+ Add New Dish</button>
+              <button className={styles.primaryBtn} onClick={() => {
+                setIsEditingDish(false);
+                setEditingDishId(null);
+                setNewDish({ name: '', description: '', price: '', category: 'Starters', is_veg: true, image_url: '' });
+                setVariants([]);
+                setHasVariants(false);
+                setShowAddModal(true);
+              }}>+ Add New Dish</button>
             </div>
             
             {isLoadingMenu ? (
@@ -957,7 +970,10 @@ export default function SellerDashboard() {
                           </button>
                         </td>
                         <td>
-                          <button className={styles.dangerBtn} onClick={() => deleteDish(item.id)}>Delete</button>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className={styles.secondaryBtn} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => openEditDishModal(item)}>Edit</button>
+                            <button className={styles.dangerBtn} onClick={() => deleteDish(item.id)}>Delete</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1073,7 +1089,20 @@ export default function SellerDashboard() {
           <div className="animate-fade-in">
             <div className={styles.headerFlex}>
               <h2 className={styles.pageTitle}>Outlet Coupon Manager</h2>
-              <button className={styles.primaryBtn} onClick={() => setShowCouponModal(true)}>+ Create New Coupon</button>
+              <button className={styles.primaryBtn} onClick={() => {
+                setIsEditingCoupon(false);
+                setEditingCouponId(null);
+                setNewCoupon({
+                  code: '',
+                  discount_type: 'percentage',
+                  discount_value: '',
+                  min_order: '0',
+                  target_type: 'all',
+                  target_details: '',
+                  status: 'active'
+                });
+                setShowCouponModal(true);
+              }}>+ Create New Coupon</button>
             </div>
             
             {isLoadingCoupons ? (
@@ -1117,7 +1146,10 @@ export default function SellerDashboard() {
                           </button>
                         </td>
                         <td>
-                          <button className={styles.dangerBtn} onClick={() => deleteCoupon(coupon.id)}>Delete</button>
+                          <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <button className={styles.secondaryBtn} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => openEditCouponModal(coupon)}>Edit</button>
+                            <button className={styles.dangerBtn} onClick={() => deleteCoupon(coupon.id)}>Delete</button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1333,7 +1365,7 @@ export default function SellerDashboard() {
               className={styles.modalContent}
             >
               <div className={styles.modalHeader}>
-                <h2>Add New Dish</h2>
+                <h2>{isEditingDish ? 'Edit Dish' : 'Add New Dish'}</h2>
                 <button className={styles.closeBtn} onClick={() => setShowAddModal(false)}>×</button>
               </div>
               <form onSubmit={handleAddDish} className={styles.modalForm}>
@@ -1504,7 +1536,7 @@ export default function SellerDashboard() {
                     className={styles.primaryBtn} 
                     style={{ flex: 2 }}
                   >
-                    Save Dish
+                    {isEditingDish ? 'Update Dish' : 'Save Dish'}
                   </button>
                 </div>
               </form>
@@ -1523,7 +1555,7 @@ export default function SellerDashboard() {
               className={styles.modalContent}
             >
               <div className={styles.modalHeader}>
-                <h2>Create New Coupon</h2>
+                <h2>{isEditingCoupon ? 'Edit Coupon' : 'Create New Coupon'}</h2>
                 <button className={styles.closeBtn} onClick={() => setShowCouponModal(false)}>×</button>
               </div>
               <form onSubmit={handleAddCoupon} className={styles.modalForm}>
@@ -1628,7 +1660,7 @@ export default function SellerDashboard() {
                     className={styles.primaryBtn} 
                     style={{ flex: 2 }}
                   >
-                    Create Coupon
+                    {isEditingCoupon ? 'Update Coupon' : 'Create Coupon'}
                   </button>
                 </div>
               </form>

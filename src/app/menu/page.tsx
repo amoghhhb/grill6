@@ -240,9 +240,14 @@ function MenuContent() {
                     <div className={item.isVeg ? styles.vegBadge : styles.nonVegBadge}></div>
                   </div>
                   
-                  <div className={styles.cardContent}>
-                    <h3>{item.name}</h3>
-                    <p className={styles.price}>₹{item.price}</p>
+                    <div className={styles.cardContent}>
+                      <h3>{item.name}</h3>
+                      <p className={styles.price}>
+                        {item.variants && item.variants.length > 0 
+                          ? `From ₹${Math.min(...item.variants.map(v => v.price))}`
+                          : `₹${item.price}`
+                        }
+                      </p>
                     <p className={styles.description}>{item.description}</p>
                     
                     <div className={styles.cardActions} style={{ height: '54px', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
