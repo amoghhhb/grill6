@@ -1388,44 +1388,52 @@ export default function SellerDashboard() {
                   </label>
                 </div>
 
-                {hasVariants && (
-                  <div className={styles.variantsBuilder}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                      <label style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--accent)' }}>OPTIONS & PRICING</label>
-                      <button type="button" onClick={addVariant} className={styles.addVariantBtn}>+ Add Option</button>
-                    </div>
-                    {variants.map((v, idx) => (
-                      <div key={idx} className={styles.variantRow}>
-                        <input 
-                          type="text" 
-                          placeholder="Size/Option Name" 
-                          className={styles.input}
-                          value={v.variant_name}
-                          onChange={(e) => updateVariant(idx, 'variant_name', e.target.value)}
-                          required
-                        />
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <span style={{ color: 'var(--accent)', fontWeight: '600' }}>₹</span>
+                <AnimatePresence>
+                  {hasVariants && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      style={{ overflow: 'hidden' }}
+                      className={styles.variantsBuilder}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <label style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--accent)' }}>OPTIONS & PRICING</label>
+                        <button type="button" onClick={addVariant} className={styles.addVariantBtn}>+ Add Option</button>
+                      </div>
+                      {variants.map((v, idx) => (
+                        <div key={idx} className={styles.variantRow}>
                           <input 
-                            type="number" 
-                            placeholder="Price" 
+                            type="text" 
+                            placeholder="Size/Option Name" 
                             className={styles.input}
-                            style={{ width: '100px' }}
-                            value={v.price}
-                            onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                            value={v.variant_name}
+                            onChange={(e) => updateVariant(idx, 'variant_name', e.target.value)}
                             required
                           />
-                          <button type="button" onClick={() => removeVariant(idx)} className={styles.removeVariantBtn}>🗑️</button>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <span style={{ color: 'var(--accent)', fontWeight: '600' }}>₹</span>
+                            <input 
+                              type="number" 
+                              placeholder="Price" 
+                              className={styles.input}
+                              style={{ width: '100px' }}
+                              value={v.price}
+                              onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                              required
+                            />
+                            <button type="button" onClick={() => removeVariant(idx)} className={styles.removeVariantBtn}>🗑️</button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {variants.length === 0 && (
-                      <p style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '0.85rem', padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-sm)' }}>
-                        No options added yet. Click "+ Add Option" to start.
-                      </p>
-                    )}
-                  </div>
-                )}
+                      ))}
+                      {variants.length === 0 && (
+                        <p style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '0.85rem', padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                          No options added yet. Click "+ Add Option" to start.
+                        </p>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <div className={styles.formGroup}>
                   <label>Description</label>
                   <textarea 
