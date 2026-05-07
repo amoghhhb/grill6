@@ -353,24 +353,22 @@ export default function SellerDashboard() {
       console.error("Error fetching orders:", error.message);
     } else {
       // Since Grill 6 is a single-store platform, all Sellers/Admins see all orders
-      const filteredOrders = data || [];
-
-      setOrders(filteredOrders);
+      const successfulOrders = (data || []).filter(o => o.status !== 'cancelled');
+      setOrders(data || []);
 
       // Calculate Seller-Specific Analytics
       let sellerRevenue = 0;
 
-      filteredOrders.forEach(order => {
-        // Match the Admin Dashboard logic by using total_amount
+      successfulOrders.forEach(order => {
         const val = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
         sellerRevenue += (val || 0);
       });
 
       setSellerStats({
         totalRevenue: sellerRevenue,
-        totalOrders: filteredOrders.length,
-        successRate: filteredOrders.length > 0 
-          ? (filteredOrders.filter(o => o.status === 'completed' || o.status === 'ready').length / filteredOrders.length) * 100 
+        totalOrders: successfulOrders.length,
+        successRate: (data || []).length > 0 
+          ? (successfulOrders.filter(o => o.status === 'completed' || o.status === 'ready').length / (data || []).length) * 100 
           : 0
       });
     }

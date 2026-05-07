@@ -398,38 +398,32 @@ export default function AdminDashboard() {
       }
       setUsersList(profiles || []);
 
-      // Calculate Stats
-      // 'user' or NULL role are your real customers
-      const totalUsers = profiles?.filter(p => p.role === 'user' || !p.role).length || 0;
-      const totalSellers = profiles?.filter(p => p.role === 'seller').length || 0;
-
-      // Fetch All Orders for Revenue calculation
-      console.log("[Admin Analytics] Fetching orders...");
-      const { data: orders, error: oError } = await supabase
+      // Fetch All Orders for Global Analytics
+      const { data: allOrders } = await supabase
         .from('orders')
-        .select('total_amount');
-      
-      let totalRev = 0;
-      let orderCount = 0;
+        .select('total_amount, status');
 
-      if (oError) {
-        console.error("[Admin Analytics] Order Fetch Error:", oError);
-      } else if (orders) {
-        console.log("[Admin Analytics] Raw Orders Data:", orders);
-        totalRev = orders.reduce((acc, curr) => {
-          const val = typeof curr.total_amount === 'string' ? parseFloat(curr.total_amount) : curr.total_amount;
-          return acc + (val || 0);
-        }, 0);
-        orderCount = orders.length;
-      }
+      // Calculate Stats
+      // 1. Filter out cancelled orders for revenue/count accuracy
+      const successfulOrders = (allOrders || []).filter(o => o.status !== 'cancelled');
+      
+      const totalRev = successfulOrders.reduce((acc, curr) => {
+        const val = typeof curr.total_amount === 'string' ? parseFloat(curr.total_amount) : curr.total_amount;
+        return acc + (val || 0);
+      }, 0);
 
       setTotalStats({
-        totalUsers,
-        totalSellers,
-        totalOrders: orderCount,
+        totalUsers: profiles?.filter(p => p.role === 'user' || !p.role).length || 0,
+        totalSellers: profiles?.filter(p => p.role === 'seller').length || 0,
+        totalOrders: successfulOrders.length,
         totalRevenue: totalRev
       });
-      console.log("[Admin Analytics] Final Stats Applied:", { totalUsers, totalSellers, totalRev, orderCount });
+      console.log("[Admin Analytics] Final Stats Applied:", { 
+        totalUsers: profiles?.filter(p => p.role === 'user' || !p.role).length || 0, 
+        totalSellers: profiles?.filter(p => p.role === 'seller').length || 0, 
+        totalRev, 
+        orderCount: successfulOrders.length 
+      });
 
     } catch (err) {
       console.error("Admin Fetch Error:", err);
