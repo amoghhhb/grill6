@@ -292,7 +292,7 @@ export default function SellerDashboard() {
   });
 
   const fetchOrders = async (isSilent = false) => {
-    if (!user?.id) return;
+    if (!user?.id || !selectedOutletId) return;
     if (!isSilent) setIsLoadingOrders(true);
     
     // Fetch all orders with their items
@@ -349,7 +349,7 @@ export default function SellerDashboard() {
   };
 
   const fetchCoupons = async () => {
-    if (!user?.id) return;
+    if (!user?.id || !selectedOutletId) return;
     setIsLoadingCoupons(true);
     const { data, error } = await supabase
       .from('coupons')
@@ -362,6 +362,7 @@ export default function SellerDashboard() {
   };
 
   const fetchMenu = async () => {
+    if (!selectedOutletId) return;
     setIsLoadingMenu(true);
     const { data, error } = await supabase
       .from('menu_items')
@@ -545,13 +546,13 @@ export default function SellerDashboard() {
 
   useEffect(() => {
     // Refresh data when switching to relevant tabs
-    if ((activeTab === 'orders' || activeTab === 'analytics') && user?.id) {
+    if ((activeTab === 'orders' || activeTab === 'analytics') && user?.id && selectedOutletId) {
       fetchOrders();
     }
-    if (activeTab === 'menu' && user?.id) {
+    if (activeTab === 'menu' && user?.id && selectedOutletId) {
       fetchMenu();
     }
-    if (activeTab === 'coupons' && user?.id) {
+    if (activeTab === 'coupons' && user?.id && selectedOutletId) {
       fetchCoupons();
     }
     if (user?.user_metadata) {
@@ -560,7 +561,7 @@ export default function SellerDashboard() {
 
     // 1. High-Reliability Realtime Subscription for Orders
     const ordersSubscription = supabase
-      .channel('seller-realtime-v4')
+      .channel('seller-realtime-v5')
       .on(
         'postgres_changes', 
         { 
@@ -577,7 +578,7 @@ export default function SellerDashboard() {
 
     // 2. Failsafe "Heartbeat" Sync (Every 20 seconds)
     const heartbeat = setInterval(() => {
-      if (activeTab === 'orders' || activeTab === 'analytics') {
+      if ((activeTab === 'orders' || activeTab === 'analytics') && selectedOutletId) {
         fetchOrders(true); // Silent update
       }
     }, 20000);
@@ -586,7 +587,7 @@ export default function SellerDashboard() {
       supabase.removeChannel(ordersSubscription);
       clearInterval(heartbeat);
     };
-  }, [activeTab, user?.id, user?.user_metadata]);
+  }, [activeTab, user?.id, user?.user_metadata, selectedOutletId]);
 
   // Hard block to prevent flash - Must be after all hooks
   if (!isLoggedIn || (userRole !== 'seller' && userRole !== 'admin')) {
