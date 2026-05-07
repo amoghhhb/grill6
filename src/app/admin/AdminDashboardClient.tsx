@@ -1088,7 +1088,7 @@ export default function AdminDashboard() {
             <form onSubmit={handleAddCoupon} className={styles.modalForm}>
               <div className={styles.formGrid}>
                 <div className={styles.formGroup}>
-                  <label>Coupon Code (e.g. SUMMER50)</label>
+                  <label>Coupon Code</label>
                   <input 
                     type="text" 
                     className={styles.input}
