@@ -292,7 +292,7 @@ export default function ProfilePage() {
                             className={styles.reviewBtn}
                             onClick={(e) => {
                               e.stopPropagation();
-                              alert("Review feature coming soon! Thank you for your feedback.");
+                              router.push(`/review/${order.id}`);
                             }}
                           >
                             ⭐ Review Order
