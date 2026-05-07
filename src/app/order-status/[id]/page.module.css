@@ -122,61 +122,74 @@
 }
 
 .progressContainer {
-  margin-top: 2rem;
+  margin-top: 3rem;
+  position: relative;
+  padding: 0 10px;
 }
 
 .progressBar {
-  height: 6px;
-  background: var(--secondary);
-  border-radius: 3px;
-  margin-bottom: 1.5rem;
-  position: relative;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  position: absolute;
+  top: 10px; /* Aligned with center of dot */
+  left: 30px;
+  right: 30px;
   overflow: hidden;
+  z-index: 1;
 }
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), #60a5fa);
-  border-radius: 3px;
-  box-shadow: 0 0 10px rgba(60, 141, 188, 0.5);
+  background: var(--primary);
+  box-shadow: 0 0 15px var(--primary);
+  border-radius: 2px;
 }
 
 .steps {
   display: flex;
   justify-content: space-between;
+  position: relative;
+  z-index: 2;
 }
 
 .step {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  opacity: 0.4;
-  transition: all 0.3s;
-}
-
-.activeStep {
-  opacity: 1;
+  gap: 12px;
+  flex: 1;
+  text-align: center;
 }
 
 .stepDot {
-  width: 12px;
-  height: 12px;
-  background: var(--secondary);
+  width: 20px;
+  height: 20px;
+  background: var(--card);
   border-radius: 50%;
-  border: 2px solid var(--border);
+  border: 4px solid var(--border);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .activeStep .stepDot {
   background: var(--primary);
-  border-color: rgba(60, 141, 188, 0.3);
-  box-shadow: 0 0 8px var(--primary);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 6px rgba(60, 141, 188, 0.1);
+  transform: scale(1.1);
 }
 
 .step span {
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.65rem;
+  font-weight: 800;
   text-transform: uppercase;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+  transition: all 0.3s;
+  max-width: 80px;
+}
+
+.activeStep span {
+  color: var(--foreground);
 }
 
 .infoGrid {
