@@ -187,7 +187,19 @@ export default function OrderStatusPage() {
             <small>Show this at the counter</small>
           </div>
           <div className={styles.outletCard}>
-            <p>Pickup Location</p>
+            <div className={styles.cardHeader}>
+              <p>Pickup Location</p>
+              {order.outlets?.address && (
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.outlets.name + ' ' + order.outlets.address)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.directionLink}
+                >
+                  🗺️ Get Directions
+                </a>
+              )}
+            </div>
             <h3>{order.outlets?.name || 'Grill 6 Outlet'}</h3>
             <small>{order.outlets?.address}</small>
           </div>

@@ -203,6 +203,33 @@
   padding: 1.5rem;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.directionLink {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(60, 141, 188, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.directionLink:hover {
+  background: var(--primary);
+  color: white;
 }
 
 .dailyCard h3, .outletCard h3 {
