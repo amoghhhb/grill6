@@ -52,7 +52,7 @@ function MenuContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'veg' | 'non-veg'>('all');
   const [activeCategory, setActiveCategory] = useState('Recommended');
-  const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet } = useCart();
+  const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet, isHydrated } = useCart();
   const [modalDismissed, setModalDismissed] = useState(false);
 
   useEffect(() => {
