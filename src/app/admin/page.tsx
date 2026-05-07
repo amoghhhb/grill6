@@ -305,8 +305,7 @@ export default function AdminDashboard() {
     delivery_radius: '5',
     latitude: '',
     longitude: '',
-    is_open: true,
-    coupons_enabled: true
+    is_open: true
   });
   const [isAssigning, setIsAssigning] = useState(false);
 
@@ -632,7 +631,16 @@ export default function AdminDashboard() {
     setIsLoadingOutlets(true);
     try {
       const { data, error } = await supabase.from('outlets').select('*, outlet_assignments(*)');
-      if (!error && data) setOutlets(data);
+      if (!error && data) {
+        const { data: couponSettings } = await supabase.from('settings').select('*').eq('key', 'coupon_settings').maybeSingle();
+        const disabledList = couponSettings?.value?.disabled_outlets || [];
+        
+        const enhancedOutlets = data.map(o => ({
+          ...o,
+          is_coupon_disabled: disabledList.includes(o.id)
+        }));
+        setOutlets(enhancedOutlets);
+      }
     } catch (e) {
       console.error("Fetch outlets failed", e);
     } finally {
@@ -691,12 +699,32 @@ export default function AdminDashboard() {
  
   const handleToggleCoupons = async (outletId: string, currentStatus: boolean) => {
     try {
+      const { data: settingsData } = await supabase
+        .from('settings')
+        .select('*')
+        .eq('key', 'coupon_settings')
+        .maybeSingle();
+      
+      let disabledOutlets = settingsData?.value?.disabled_outlets || [];
+      
+      if (currentStatus) {
+        // Turning OFF -> Add to disabled list
+        disabledOutlets = [...new Set([...disabledOutlets, outletId])];
+      } else {
+        // Turning ON -> Remove from disabled list
+        disabledOutlets = disabledOutlets.filter((id: string) => id !== outletId);
+      }
+
       const { error } = await supabase
-        .from('outlets')
-        .update({ coupons_enabled: !currentStatus })
-        .eq('id', outletId);
+        .from('settings')
+        .upsert({ 
+          key: 'coupon_settings', 
+          value: { disabled_outlets: disabledOutlets },
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'key' });
       
       if (error) throw error;
+      
       fetchOutlets();
       setToastMessage(!currentStatus ? "🎟️ Coupons Enabled for Outlet" : "🚫 Coupons Disabled for Outlet");
       setShowToast(true);
@@ -997,8 +1025,8 @@ export default function AdminDashboard() {
                   <div className={styles.outletHeader}>
                     <h3>{outlet.name}</h3>
                     <div className={styles.headerBadges}>
-                      <span className={`${styles.statusBadge} ${outlet.coupons_enabled ? styles.available : styles.unavailable}`} style={{ fontSize: '0.6rem' }}>
-                        {outlet.coupons_enabled ? 'COUPONS ON' : 'COUPONS OFF'}
+                      <span className={`${styles.statusBadge} ${!outlet.is_coupon_disabled ? styles.available : styles.unavailable}`} style={{ fontSize: '0.6rem' }}>
+                        {!outlet.is_coupon_disabled ? 'COUPONS ON' : 'COUPONS OFF'}
                       </span>
                       <span className={`${styles.statusBadge} ${outlet.is_open ? styles.pending : styles.cancelled}`}>
                         {outlet.is_open ? 'OPEN' : 'CLOSED'}
@@ -1034,8 +1062,8 @@ export default function AdminDashboard() {
                     <div className={styles.toggleSetting}>
                       <span>Allow Coupons</span>
                       <div 
-                        className={`${styles.simpleSwitch} ${outlet.coupons_enabled ? styles.switchOn : styles.switchOff}`}
-                        onClick={() => handleToggleCoupons(outlet.id, outlet.coupons_enabled)}
+                        className={`${styles.simpleSwitch} ${!outlet.is_coupon_disabled ? styles.switchOn : styles.switchOff}`}
+                        onClick={() => handleToggleCoupons(outlet.id, !outlet.is_coupon_disabled)}
                       >
                         <div className={styles.switchHandle} />
                       </div>

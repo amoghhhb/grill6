@@ -123,6 +123,7 @@ export default function SellerDashboard() {
   const [selectedOutletId, setSelectedOutletId] = useState<string | null>(null);
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(true);
   const [historyFilter, setHistoryFilter] = useState<'completed' | 'cancelled'>('completed');
+  const [isCouponDisabled, setIsCouponDisabled] = useState(false);
 
   const toggleOutletStatus = async () => {
     if (!selectedOutletId) return;
@@ -149,15 +150,27 @@ export default function SellerDashboard() {
 
   const fetchInitialStatus = async () => {
     if (!selectedOutletId) return;
-    const { data } = await supabase
+    
+    // 1. Fetch Outlet Open/Closed status
+    const { data: outletData } = await supabase
       .from('outlets')
       .select('is_open')
       .eq('id', selectedOutletId)
       .maybeSingle();
     
-    if (data) {
-      setIsAcceptingOrders(data.is_open);
+    if (outletData) {
+      setIsAcceptingOrders(outletData.is_open);
     }
+
+    // 2. Fetch Coupon permission status from global settings (Zero-SQL fallback)
+    const { data: settingsData } = await supabase
+      .from('settings')
+      .select('*')
+      .eq('key', 'coupon_settings')
+      .maybeSingle();
+    
+    const disabledList = settingsData?.value?.disabled_outlets || [];
+    setIsCouponDisabled(disabledList.includes(selectedOutletId));
   };
 
   const fetchAssignments = async () => {
@@ -202,17 +215,26 @@ export default function SellerDashboard() {
             setIsAcceptingOrders(payload.new.is_open);
           }
         })
+        .on('postgres_changes' as any, {
+          event: '*',
+          table: 'settings',
+          filter: `key=eq.coupon_settings`
+        }, (payload: any) => {
+          if (payload.new) {
+            const disabledList = payload.new.value?.disabled_outlets || [];
+            setIsCouponDisabled(disabledList.includes(selectedOutletId));
+          }
+        })
         .subscribe();
 
       // Auto-redirect from coupons if disabled
-      const currentOutlet = assignedOutlets.find(o => o.id === selectedOutletId);
-      if (currentOutlet && currentOutlet.coupons_enabled === false && activeTab === 'coupons') {
+      if (isCouponDisabled && activeTab === 'coupons') {
         setActiveTab('orders');
       }
 
       return () => { supabase.removeChannel(channel); };
     }
-  }, [selectedOutletId, assignedOutlets, activeTab]);
+  }, [selectedOutletId, isCouponDisabled, activeTab]);
 
   const fetchCategories = async () => {
     if (!user?.id) return;
@@ -653,7 +675,7 @@ export default function SellerDashboard() {
           <button className={`${styles.navBtn} ${activeTab === 'categories' ? styles.active : ''}`} onClick={() => setActiveTab('categories')}>
             Category Manager
           </button>
-          {assignedOutlets.find(o => o.id === selectedOutletId)?.coupons_enabled !== false && (
+          {!isCouponDisabled && (
             <button className={`${styles.navBtn} ${activeTab === 'coupons' ? styles.active : ''}`} onClick={() => setActiveTab('coupons')}>
               Coupon Manager
             </button>

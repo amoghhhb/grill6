@@ -24,7 +24,6 @@ export interface Outlet {
   longitude: number;
   delivery_radius: number;
   is_open: boolean;
-  coupons_enabled: boolean;
 }
 
 export interface CartItem extends MenuItem {
