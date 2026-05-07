@@ -257,11 +257,12 @@ export default function AdminDashboard() {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [chartData, setChartData] = useState(MOCK_CHART_DATA);
   const [totalStats, setTotalStats] = useState({
-    totalUsers: 0,
+  totalUsers: 0,
     totalSellers: 0,
     totalOrders: 0,
     totalRevenue: 0
   });
+  const [outletBreakdown, setOutletBreakdown] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmailUser, setSelectedEmailUser] = useState<{ email: string; name: string } | null>(null);
@@ -401,16 +402,38 @@ export default function AdminDashboard() {
       // Fetch All Orders for Global Analytics
       const { data: allOrders } = await supabase
         .from('orders')
-        .select('total_amount, status');
+        .select('total_amount, status, outlet_id');
 
       // Calculate Stats
-      // 1. Filter out cancelled orders for revenue/count accuracy
       const successfulOrders = (allOrders || []).filter(o => o.status !== 'cancelled');
       
       const totalRev = successfulOrders.reduce((acc, curr) => {
         const val = typeof curr.total_amount === 'string' ? parseFloat(curr.total_amount) : curr.total_amount;
         return acc + (val || 0);
       }, 0);
+
+      // Calculate Breakdown by Outlet
+      const breakdownMap: any = {};
+      allOrders?.forEach(order => {
+        const oid = order.outlet_id || 'unassigned';
+        if (!breakdownMap[oid]) {
+          breakdownMap[oid] = { revenue: 0, count: 0, successCount: 0 };
+        }
+        breakdownMap[oid].count += 1;
+        if (order.status !== 'cancelled') {
+          const val = typeof order.total_amount === 'string' ? parseFloat(order.total_amount) : order.total_amount;
+          breakdownMap[oid].revenue += (val || 0);
+          breakdownMap[oid].successCount += 1;
+        }
+      });
+
+      const breakdownArray = Object.keys(breakdownMap).map(id => ({
+        id,
+        name: outlets.find(o => o.id === id)?.name || (id === 'unassigned' ? 'Unassigned/Legacy' : 'Unknown Outlet'),
+        ...breakdownMap[id]
+      }));
+
+      setOutletBreakdown(breakdownArray);
 
       setTotalStats({
         totalUsers: profiles?.filter(p => p.role === 'user' || !p.role).length || 0,
@@ -1091,29 +1114,44 @@ export default function AdminDashboard() {
             
             <div className={styles.statsGrid}>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>💰</div>
-                <div className={styles.statContent}>
-                  <h3>Gross Revenue</h3>
-                  <div className={styles.statValue}>₹{totalStats.totalRevenue.toLocaleString()}</div>
-                  <div className={`${styles.statTrend} ${styles.trendUp}`}>+12.5% vs last month</div>
-                </div>
+                <h3>Gross Revenue (Global)</h3>
+                <div className={styles.statValue}>₹{totalStats.totalRevenue.toLocaleString()}</div>
+                <div className={styles.statMeta}>+12.5% vs last month</div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>📦</div>
-                <div className={styles.statContent}>
-                  <h3>Total Orders</h3>
-                  <div className={styles.statValue}>{totalStats.totalOrders}</div>
-                  <div className={`${styles.statTrend} ${styles.trendUp}`}>+5.2% vs last month</div>
-                </div>
+                <h3>Total Orders (Global)</h3>
+                <div className={styles.statValue}>{totalStats.totalOrders}</div>
+                <div className={styles.statMeta}>+5.2% vs last month</div>
               </div>
               <div className={styles.statCard}>
-                <div className={styles.statIcon}>👥</div>
-                <div className={styles.statContent}>
-                  <h3>User Growth</h3>
-                  <div className={styles.statValue}>{totalStats.totalUsers}</div>
-                  <div className={`${styles.statTrend} ${styles.trendUp}`}>+24 new this week</div>
-                </div>
+                <h3>User Growth</h3>
+                <div className={styles.statValue}>{totalStats.totalUsers}</div>
+                <div className={styles.statMeta}>+24 new this week</div>
               </div>
+            </div>
+
+            <h3 className={styles.sectionTitle}>Performance by Outlet</h3>
+            <div className={styles.tableCard} style={{ marginBottom: '3rem' }}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Outlet Name</th>
+                    <th>Successful Orders</th>
+                    <th>Success Rate</th>
+                    <th>Revenue Generated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {outletBreakdown.map(item => (
+                    <tr key={item.id}>
+                      <td className={styles.highlight}>{item.name}</td>
+                      <td>{item.successCount}</td>
+                      <td>{item.count > 0 ? ((item.successCount / item.count) * 100).toFixed(1) : '0'}%</td>
+                      <td className={styles.amount}>₹{item.revenue.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
             <div className={styles.chartsGrid}>
