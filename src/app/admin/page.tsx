@@ -28,7 +28,7 @@ const MOCK_USERS = [
   { id: 'USR-003', name: 'Admin', email: 'admin@grill6.com', role: 'admin', joined: '1 Jan 2026', status: 'active' },
 ];
 
-const RoleDropdown = ({ userId, currentRole, onRoleChange }: { userId: string, currentRole: string, onRoleChange: (uid: string, role: string) => void }) => {
+function RoleDropdown({ userId, currentRole, onRoleChange }: { userId: string, currentRole: string, onRoleChange: (uid: string, role: string) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
   const [mounted, setMounted] = useState(false);
@@ -124,9 +124,9 @@ const RoleDropdown = ({ userId, currentRole, onRoleChange }: { userId: string, c
       )}
     </div>
   );
-};
+}
 
-const CustomSelect = ({ options, value, onChange, label }: { options: any[], value: string, onChange: (val: string) => void, label: string }) => {
+function CustomSelect({ options, value, onChange, label }: { options: any[], value: string, onChange: (val: string) => void, label: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -185,9 +185,9 @@ const CustomSelect = ({ options, value, onChange, label }: { options: any[], val
       </AnimatePresence>
     </div>
   );
-};
+}
 
-const StaffAssignmentDropdown = ({ sellers, onAssign, disabled }: { sellers: any[], onAssign: (uid: string) => void, disabled?: boolean }) => {
+function StaffAssignmentDropdown({ sellers, onAssign, disabled }: { sellers: any[], onAssign: (uid: string) => void, disabled?: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -248,7 +248,7 @@ const StaffAssignmentDropdown = ({ sellers, onAssign, disabled }: { sellers: any
       </AnimatePresence>
     </div>
   );
-};
+}
 
 export default function AdminDashboard() {
   const { user, userRole, isLoggedIn } = useCart();
