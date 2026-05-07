@@ -768,15 +768,15 @@ export default function SellerDashboard() {
             
             <div style={{ marginBottom: '2rem' }}>
               <div className={styles.historyFilterWrapper}>
-                <label className={styles.filterLabel}>Viewing</label>
-                <select 
-                  className={styles.premiumHistorySelect}
+                <CustomSelect 
+                  label="Viewing Archive"
+                  options={[
+                    { value: 'completed', label: '✅ Completed Orders' },
+                    { value: 'cancelled', label: '❌ Cancelled Orders' }
+                  ]}
                   value={historyFilter}
-                  onChange={(e) => setHistoryFilter(e.target.value as any)}
-                >
-                  <option value="completed">Completed Orders</option>
-                  <option value="cancelled">Cancelled Orders</option>
-                </select>
+                  onChange={(val) => setHistoryFilter(val as any)}
+                />
               </div>
 
               <div className={styles.tableCard}>
@@ -791,10 +791,17 @@ export default function SellerDashboard() {
                       <th>Action</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {orders.filter(o => o.status === historyFilter).map(order => (
-                      <tr key={order.id}>
-                        <td className={styles.highlight}>{order.order_id_display}</td>
+                  <motion.tbody layout>
+                    <AnimatePresence mode="popLayout">
+                      {orders.filter(o => o.status === historyFilter).map(order => (
+                        <motion.tr 
+                          key={order.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          <td className={styles.highlight}>{order.order_id_display}</td>
                         <td>
                           <strong>
                             {order.profiles?.first_name 
@@ -829,14 +836,15 @@ export default function SellerDashboard() {
                         </td>
                       </tr>
                     ))}
+                    </AnimatePresence>
                     {orders.filter(o => o.status === historyFilter).length === 0 && !isLoadingOrders && (
-                      <tr>
+                      <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <td colSpan={6} style={{ textAlign: 'center', padding: '2rem' }}>
                           No {historyFilter} orders found in your archive.
                         </td>
-                      </tr>
+                      </motion.tr>
                     )}
-                  </tbody>
+                  </motion.tbody>
                 </table>
               </div>
             </div>
