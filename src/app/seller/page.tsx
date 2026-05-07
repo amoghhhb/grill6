@@ -1349,33 +1349,49 @@ export default function SellerDashboard() {
                   />
                 </div>
                 <div className={styles.formGrid}>
-                  {!hasVariants && (
-                    <div className={styles.formGroup}>
-                      <label>Price (₹)</label>
-                      <input 
-                        type="number" 
-                        required 
-                        placeholder="250" 
-                        className={styles.input}
-                        value={newDish.price}
-                        onChange={e => setNewDish({...newDish, price: e.target.value})}
+                  <AnimatePresence mode="popLayout">
+                    {!hasVariants && (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: -50, scale: 0.9, width: 0, marginRight: 0 }}
+                        transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                        className={styles.formGroup}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <label>Price (₹)</label>
+                        <input 
+                          type="number" 
+                          required 
+                          placeholder="250" 
+                          className={styles.input}
+                          value={newDish.price}
+                          onChange={e => setNewDish({...newDish, price: e.target.value})}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  
+                  <motion.div 
+                    layout
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                    style={{ flex: 1 }}
+                  >
+                    <CustomSelect 
+                        options={categories.length > 0 
+                          ? categories.map(c => ({ label: c.name, value: c.name }))
+                          : [
+                              { label: 'Starters', value: 'Starters' },
+                              { label: 'Main Course', value: 'Main Course' },
+                              { label: 'Desserts', value: 'Desserts' },
+                              { label: 'Beverages', value: 'Beverages' }
+                            ]
+                        }
+                        value={newDish.category}
+                        onChange={(val) => setNewDish({ ...newDish, category: val })}
+                        label="Category"
                       />
-                    </div>
-                  )}
-                  <CustomSelect 
-                      options={categories.length > 0 
-                        ? categories.map(c => ({ label: c.name, value: c.name }))
-                        : [
-                            { label: 'Starters', value: 'Starters' },
-                            { label: 'Main Course', value: 'Main Course' },
-                            { label: 'Desserts', value: 'Desserts' },
-                            { label: 'Beverages', value: 'Beverages' }
-                          ]
-                      }
-                      value={newDish.category}
-                      onChange={(val) => setNewDish({ ...newDish, category: val })}
-                      label="Category"
-                    />
+                  </motion.div>
                 </div>
                 <div className={styles.formGroup}>
                   <label className={styles.checkboxLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
