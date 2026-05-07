@@ -40,11 +40,22 @@ export default function OrderStatusPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUnauthorized, setIsUnauthorized] = useState(false);
 
   useEffect(() => {
     if (!id) return;
 
     const fetchOrder = async () => {
+      // 1. Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setError("Please login to view order status");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch order and check ownership
       const { data, error } = await supabase
         .from('orders')
         .select(`
@@ -58,6 +69,9 @@ export default function OrderStatusPage() {
       if (error) {
         console.error("Fetch error:", error);
         setError("Order not found");
+      } else if (data.user_id !== user.id) {
+        // OWNERSHIP CHECK
+        setIsUnauthorized(true);
       } else {
         setOrder(data);
       }
@@ -93,6 +107,17 @@ export default function OrderStatusPage() {
       <div className={styles.loadingContainer}>
         <div className={styles.spinner}></div>
         <p>Locating your feast...</p>
+      </div>
+    );
+  }
+
+  if (isUnauthorized) {
+    return (
+      <div className={styles.errorContainer}>
+        <div className={styles.cancelledIcon}>🔒</div>
+        <h1>Access Denied</h1>
+        <p>You can only track orders that you've placed.</p>
+        <button onClick={() => router.push('/menu')} className={styles.primaryBtn}>Back to Menu</button>
       </div>
     );
   }
