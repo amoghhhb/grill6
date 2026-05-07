@@ -7,18 +7,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import EmailModal from '@/components/EmailModal/EmailModal';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
-import dynamic from 'next/dynamic';
-
-// Dynamically import Recharts to prevent initialization errors during SSR/Hydration
-const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
-const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), { ssr: false });
-const Area = dynamic(() => import('recharts').then(mod => mod.Area), { ssr: false });
-const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
-const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
-const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
-const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
-const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
-const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+import { RoleDropdown } from './components/RoleDropdown';
+import { CustomSelect } from './components/CustomSelect';
+import { StaffAssignmentDropdown } from './components/StaffAssignmentDropdown';
 
 const MOCK_CHART_DATA = [
   { date: '01 May', revenue: 4500, orders: 12 },
@@ -36,227 +27,16 @@ const MOCK_USERS = [
   { id: 'USR-003', name: 'Admin', email: 'admin@grill6.com', role: 'admin', joined: '1 Jan 2026', status: 'active' },
 ];
 
-function RoleDropdown({ userId, currentRole, onRoleChange }: { userId: string, currentRole: string, onRoleChange: (uid: string, role: string) => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });
-  const [mounted, setMounted] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const roles = ['user', 'seller', 'admin'];
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const updateCoords = () => {
-    if (buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setCoords({
-        top: rect.bottom,
-        left: rect.left,
-        width: rect.width
-      });
-    }
-  };
-
-  useLayoutEffect(() => {
-    if (isOpen) {
-      updateCoords();
-      window.addEventListener('scroll', updateCoords, true);
-      window.addEventListener('resize', updateCoords);
-    }
-    return () => {
-      window.removeEventListener('scroll', updateCoords, true);
-      window.removeEventListener('resize', updateCoords);
-    };
-  }, [isOpen]);
-
-  if (!mounted) return null;
-
-  return (
-    <div className={styles.customDropdownContainer}>
-      <button 
-        ref={buttonRef}
-        className={`${styles.roleDisplay} ${styles[currentRole]}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          setIsOpen(!isOpen);
-        }}
-      >
-        {currentRole}
-        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="3" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-      
-      {createPortal(
-        <AnimatePresence>
-          {isOpen && (
-            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 999999, pointerEvents: 'none' }}>
-              <div 
-                className={styles.dropdownOverlay} 
-                style={{ pointerEvents: 'auto' }}
-                onClick={() => setIsOpen(false)} 
-              />
-              <motion.div 
-                className={styles.dropdownList}
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
-                style={{
-                  position: 'fixed',
-                  top: (coords.top + 8) + 'px',
-                  left: coords.left + 'px',
-                  minWidth: coords.width + 'px',
-                  pointerEvents: 'auto',
-                }}
-              >
-                {roles.map(role => (
-                  <button 
-                    key={role}
-                    className={`${styles.dropdownItem} ${currentRole === role ? styles.activeItem : ''}`}
-                    onClick={() => {
-                      if (role !== currentRole) onRoleChange(userId, role);
-                      setIsOpen(false);
-                    }}
-                  >
-                    <span className={`${styles.roleDot} ${styles[role]}`}></span>
-                    {role}
-                  </button>
-                ))}
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
-  );
-}
-
-function CustomSelect({ options, value, onChange, label }: { options: any[], value: string, onChange: (val: string) => void, label: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find(opt => opt.value === value);
-
-  return (
-    <div className={styles.customSelectContainer} ref={containerRef}>
-      <label className={styles.selectLabel}>{label}</label>
-      <div 
-        className={`${styles.selectDisplay} ${isOpen ? styles.selectOpen : ''}`} 
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>{selectedOption?.label || 'Select option...'}</span>
-        <motion.span 
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-          className={styles.selectArrow}
-        >
-          ▼
-        </motion.span>
-      </div>
-      
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className={styles.selectDropdown}
-          >
-            {options.map(opt => (
-              <div 
-                key={opt.value} 
-                className={`${styles.selectOption} ${value === opt.value ? styles.selectedOpt : ''}`}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-              >
-                {opt.label}
-              </div>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-function StaffAssignmentDropdown({ sellers, onAssign, disabled }: { sellers: any[], onAssign: (uid: string) => void, disabled?: boolean }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div className={styles.staffDropdownContainer} ref={containerRef}>
-      <button 
-        type="button"
-        className={`${styles.staffDropdownTrigger} ${isOpen ? styles.triggerActive : ''}`}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        disabled={disabled}
-      >
-        <span>+ Assign Seller...</span>
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="3" style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <path d="M6 9l6 6 6-6" />
-        </svg>
-      </button>
-
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className={styles.staffDropdownList}
-          >
-            {sellers.length === 0 ? (
-              <div className={styles.emptySellers}>No available sellers</div>
-            ) : sellers.map(s => (
-              <button 
-                key={s.id}
-                type="button"
-                className={styles.staffOption}
-                onClick={() => {
-                  onAssign(s.id);
-                  setIsOpen(false);
-                }}
-              >
-                <div className={styles.staffAvatar}>{s.first_name[0]}{s.last_name[0]}</div>
-                <div className={styles.staffInfo}>
-                  <p className={styles.staffName}>{s.first_name} {s.last_name}</p>
-                  <p className={styles.staffEmail}>{s.email}</p>
-                </div>
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
+// Charts still need dynamic import for SSR stability
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
+const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), { ssr: false });
+const Area = dynamic(() => import('recharts').then(mod => mod.Area), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
 
 export default function AdminDashboard() {
   const { user, userRole, isLoggedIn } = useCart();
@@ -885,7 +665,7 @@ export default function AdminDashboard() {
                       <td><strong>{u.first_name} {u.last_name}</strong></td>
                       <td>{u.email}</td>
                       <td>
-                        <RoleDropdown userId={u.id} currentRole={u.role} onRoleChange={handleRoleChange} />
+                        <RoleDropdown userId={u.id} currentRole={u.role} onRoleChange={handleRoleChange} styles={styles} />
                       </td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
@@ -1124,6 +904,7 @@ export default function AdminDashboard() {
                         sellers={usersList.filter(u => u.role === 'seller')}
                         onAssign={(uid) => handleAssignSeller(outlet.id, uid)}
                         disabled={isAssigning}
+                        styles={styles}
                       />
                     </div>
                   </div>
@@ -1374,6 +1155,7 @@ export default function AdminDashboard() {
                     { value: 'percentage', label: 'Percentage (%)' },
                     { value: 'flat', label: 'Flat Amount (₹)' }
                   ]}
+                  styles={styles}
                 />
                 <div className={styles.formGroup}>
                   <label>Value</label>
@@ -1406,6 +1188,7 @@ export default function AdminDashboard() {
                     { value: 'all', label: 'All Users (Global)' },
                     { value: 'particular', label: 'Particular User (by ID)' }
                   ]}
+                  styles={styles}
                 />
                 <CustomSelect 
                   label="Promotion Scope"
@@ -1415,6 +1198,7 @@ export default function AdminDashboard() {
                     { value: 'all', label: 'Platform-Wide (Global)' },
                     ...outlets.map(o => ({ value: o.id, label: o.name }))
                   ]}
+                  styles={styles}
                 />
               </div>
               {newCoupon.target_type === 'particular' && (
