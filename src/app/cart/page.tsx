@@ -95,36 +95,39 @@ export default function CartPage() {
     try {
       // 1. Find the next available Daily Number
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      // Use local date for the display ID to match the outlet's day
       const day = String(now.getDate()).padStart(2, '0');
       const month = String(now.getMonth() + 1).padStart(2, '0');
       const year = now.getFullYear();
       const dateStr = `${day}${month}${year}`;
-
-      let nextDailyNum = 1;
-      let finalOrderId = '';
-      let isUnique = false;
-      let attempts = 0;
-
-      // Fetch the current max for today to start with a good guess
-      const { data: ordersToday } = await supabase
-        .from('orders')
-        .select('daily_number')
-        .gte('created_at', todayStart)
-        .eq('outlet_id', selectedOutlet?.id) // Daily numbers are per outlet
-        .order('daily_number', { ascending: false })
-        .limit(1);
       
-      if (ordersToday && ordersToday.length > 0) {
-        nextDailyNum = ordersToday[0].daily_number + 1;
-      }
+      // Calculate today's start in UTC for the database query
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
 
       let orderData: any = null;
+      let isUnique = false;
+      let attempts = 0;
+      const MAX_ATTEMPTS = 15;
 
-      // Retry loop to guarantee uniqueness
-      while (!isUnique && attempts < 5) {
+      while (!isUnique && attempts < MAX_ATTEMPTS) {
         attempts++;
-        finalOrderId = `GR6-${dateStr}-${nextDailyNum}`;
+        
+        // 2. Fetch the current max for today to get the next number
+        // We do this INSIDE the loop to get the most fresh value after a collision
+        const { data: maxOrder } = await supabase
+          .from('orders')
+          .select('daily_number')
+          .gte('created_at', todayStart)
+          .eq('outlet_id', selectedOutlet?.id)
+          .order('daily_number', { ascending: false })
+          .limit(1);
+
+        let nextDailyNum = 1;
+        if (maxOrder && maxOrder.length > 0) {
+          nextDailyNum = maxOrder[0].daily_number + 1;
+        }
+
+        const finalOrderId = `GR6-${dateStr}-${nextDailyNum}`;
         
         const { data, error: insertError } = await supabase
           .from('orders')
@@ -141,8 +144,9 @@ export default function CartPage() {
           .single();
 
         if (insertError) {
-          if (insertError.code === '23505') { // Duplicate key
-            nextDailyNum++; // Bump and try again
+          if (insertError.code === '23505') { // Duplicate key (Concurrency)
+            // Wait for a tiny random time to avoid repeat collisions (jitter)
+            await new Promise(res => setTimeout(res, Math.random() * 200));
             continue;
           }
           throw insertError;
