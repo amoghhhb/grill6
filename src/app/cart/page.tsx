@@ -187,8 +187,7 @@ export default function CartPage() {
   return (
     <div className={styles.container}>
       <AnimatePresence mode="wait">
-        {!orderPlaced ? (
-          <motion.div 
+        <motion.div 
             key="cart-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -364,7 +363,6 @@ export default function CartPage() {
           </div>
         </div>
           </motion.div>
-        )}
       </AnimatePresence>
 
       {showSuccessPopup && typeof document !== 'undefined' && createPortal(
