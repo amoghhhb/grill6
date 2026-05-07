@@ -435,52 +435,109 @@ export default function SellerDashboard() {
     setIsLoadingMenu(false);
   };
 
+  const openEditDishModal = (item: any) => {
+    setNewDish({
+      name: item.name,
+      description: item.description,
+      price: item.price.toString(),
+      category: item.category,
+      is_veg: item.is_veg,
+      image_url: item.image || ''
+    });
+    setHasVariants(item.variants && item.variants.length > 0);
+    setVariants(item.variants || []);
+    setIsEditingDish(true);
+    setEditingDishId(item.id);
+    setShowAddModal(true);
+  };
+
+  const openEditCouponModal = (coupon: any) => {
+    setNewCoupon({
+      code: coupon.code,
+      discount_type: coupon.discount_type,
+      discount_value: coupon.discount_value.toString(),
+      min_order: coupon.min_order.toString(),
+      target_type: coupon.target_type,
+      target_details: coupon.target_details || '',
+      status: coupon.status
+    });
+    setIsEditingCoupon(true);
+    setEditingCouponId(coupon.id);
+    setShowCouponModal(true);
+  };
+
   const handleAddDish = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) return;
+    if (!selectedOutletId || !user?.id) return;
 
-    // 1. Insert the main dish
-    const { data: mainDish, error: dishError } = await supabase
-      .from('menu_items')
-      .insert([{
-        ...newDish,
-        price: hasVariants ? 0 : parseFloat(newDish.price), // Base price 0 if variants exist
+    try {
+      const dishData = {
+        name: newDish.name,
+        description: newDish.description,
+        price: hasVariants ? 0 : parseFloat(newDish.price),
+        category: newDish.category,
+        is_veg: newDish.is_veg,
+        image: newDish.image_url,
+        outlet_id: selectedOutletId,
         seller_id: user.id,
-        outlet_id: selectedOutletId
-      }])
-      .select()
-      .single();
+        is_available: true
+      };
 
-    if (dishError) {
-      alert(dishError.message);
-      return;
-    }
+      let resultId;
 
-    // 2. Insert variants if any
-    if (hasVariants && variants.length > 0) {
-      const variantsToInsert = variants.map(v => ({
-        menu_item_id: mainDish.id,
-        variant_name: v.variant_name,
-        price: parseFloat(v.price)
-      }));
-
-      const { error: variantError } = await supabase
-        .from('menu_item_variants')
-        .insert(variantsToInsert);
-
-      if (variantError) {
-        alert("Dish saved but variants failed: " + variantError.message);
+      if (isEditingDish && editingDishId) {
+        const { error } = await supabase
+          .from('menu_items')
+          .update(dishData)
+          .eq('id', editingDishId);
+        if (error) throw error;
+        resultId = editingDishId;
+      } else {
+        const { data, error } = await supabase
+          .from('menu_items')
+          .insert([dishData])
+          .select();
+        if (error) throw error;
+        resultId = data[0].id;
       }
-    }
 
-    setShowAddModal(false);
-    setNewDish({ name: '', description: '', price: '', category: 'Starters', is_veg: true, image_url: '' });
-    setHasVariants(false);
-    setVariants([]);
-    fetchMenu();
-    setToastMessage("✅ Dish added successfully!");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+      // 2. Handle Variants
+      if (hasVariants) {
+        // Delete old variants first if editing
+        if (isEditingDish) {
+          await supabase.from('menu_item_variants').delete().eq('menu_item_id', resultId);
+        }
+
+        const variantsToInsert = variants.map(v => ({
+          menu_item_id: resultId,
+          variant_name: v.variant_name,
+          price: parseFloat(v.price)
+        }));
+        
+        const { error: variantError } = await supabase
+          .from('menu_item_variants')
+          .insert(variantsToInsert);
+        
+        if (variantError) throw variantError;
+      } else if (isEditingDish) {
+        // If we switched from variants to no variants, delete any existing ones
+        await supabase.from('menu_item_variants').delete().eq('menu_item_id', resultId);
+      }
+
+      setShowAddModal(false);
+      setIsEditingDish(false);
+      setEditingDishId(null);
+      setNewDish({ name: '', description: '', price: '', category: 'Starters', is_veg: true, image_url: '' });
+      setVariants([]);
+      setHasVariants(false);
+      fetchMenu();
+      setToastMessage(isEditingDish ? "✅ Dish updated successfully!" : "✅ Dish added to menu!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err: any) {
+      console.error(err.message);
+      alert(err.message);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
