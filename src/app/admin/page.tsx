@@ -657,7 +657,7 @@ export default function AdminDashboard() {
       }]);
       if (error) throw error;
       setShowOutletModal(false);
-      setNewOutlet({ name: '', address: '', delivery_radius: '5', latitude: '', longitude: '', is_open: true, coupons_enabled: true });
+      setNewOutlet({ name: '', address: '', delivery_radius: '5', latitude: '', longitude: '', is_open: true });
       fetchOutlets();
       setToastMessage("🏢 New Outlet Created!");
       setShowToast(true);
