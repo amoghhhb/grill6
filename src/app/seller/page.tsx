@@ -501,9 +501,7 @@ export default function SellerDashboard() {
         resultId = data[0].id;
       }
 
-      // 2. Handle Variants
       if (hasVariants) {
-        // Delete old variants first if editing
         if (isEditingDish) {
           await supabase.from('menu_item_variants').delete().eq('menu_item_id', resultId);
         }
@@ -520,7 +518,6 @@ export default function SellerDashboard() {
         
         if (variantError) throw variantError;
       } else if (isEditingDish) {
-        // If we switched from variants to no variants, delete any existing ones
         await supabase.from('menu_item_variants').delete().eq('menu_item_id', resultId);
       }
 
@@ -548,9 +545,9 @@ export default function SellerDashboard() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`; // bucket is already public/configured
+      const filePath = `${fileName}`; 
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('menu-items')
         .upload(filePath, file);
 
@@ -564,7 +561,7 @@ export default function SellerDashboard() {
       alert("Image uploaded successfully!");
     } catch (err: any) {
       console.error(err);
-      alert("Error uploading image: " + err.message + "\n(Note: Ensure 'menu-items' bucket exists in Supabase Storage)");
+      alert("Error uploading image: " + err.message);
     } finally {
       setIsUploading(false);
     }
@@ -575,39 +572,56 @@ export default function SellerDashboard() {
       .from('menu_items')
       .update({ is_available: !currentStatus })
       .eq('id', id);
-    
     if (!error) fetchMenu();
   };
 
   const deleteDish = async (id: string) => {
     if (confirm('Are you sure you want to delete this dish?')) {
-      const { error } = await supabase
-        .from('menu_items')
-        .delete()
-        .eq('id', id);
-      
+      const { error } = await supabase.from('menu_items').delete().eq('id', id);
       if (!error) fetchMenu();
     }
   };
+
   const handleAddCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.id) return;
+    if (!selectedOutletId || !user?.id) return;
 
-    const { error } = await supabase
-      .from('coupons')
-      .insert([{
-        ...newCoupon,
+    try {
+      const couponData = {
+        code: newCoupon.code,
+        discount_type: newCoupon.discount_type,
         discount_value: parseFloat(newCoupon.discount_value),
         min_order: parseFloat(newCoupon.min_order),
-        seller_id: user.id
-      }]);
+        target_type: newCoupon.target_type,
+        target_details: newCoupon.target_details,
+        status: newCoupon.status,
+        outlet_id: selectedOutletId
+      };
 
-    if (!error) {
+      if (isEditingCoupon && editingCouponId) {
+        const { error } = await supabase
+          .from('coupons')
+          .update(couponData)
+          .eq('id', editingCouponId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('coupons')
+          .insert([couponData]);
+        if (error) throw error;
+      }
+
       setShowCouponModal(false);
+      setIsEditingCoupon(false);
+      setEditingCouponId(null);
       setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active' });
       fetchCoupons();
-    } else {
-      alert(error.message);
+      setToastMessage(isEditingCoupon ? "✅ Coupon updated!" : "✅ New coupon created!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (err: any) {
+      console.error(err.message);
+      alert(err.message);
     }
   };
 
