@@ -1005,7 +1005,7 @@ export default function AdminDashboard() {
               <button className={styles.primaryBtn} onClick={() => {
                 setIsEditingCoupon(false);
                 setEditingCouponId(null);
-                setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active' });
+                setNewCoupon({ code: '', discount_type: 'percentage', discount_value: '', min_order: '0', target_type: 'all', target_details: '', status: 'active', outlet_id: 'all' });
                 setShowCouponModal(true);
               }}>+ Create Global Coupon</button>
             </div>
