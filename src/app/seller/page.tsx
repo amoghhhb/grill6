@@ -312,7 +312,6 @@ export default function SellerDashboard() {
   };
 
   const [selectedEmailUser, setSelectedEmailUser] = useState<{ email: string; name: string } | null>(null);
-  const [taxEnabled, setTaxEnabled] = useState(false);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
@@ -528,21 +527,6 @@ export default function SellerDashboard() {
     if (!error) fetchCoupons();
   };
 
-  const handleUpdateTaxSetting = async (enabled: boolean) => {
-    setIsUpdatingSettings(true);
-    try {
-      const { error } = await supabase.auth.updateUser({
-        data: { tax_enabled: enabled }
-      });
-      if (error) throw error;
-      setTaxEnabled(enabled);
-      alert(`Tax ${enabled ? 'enabled' : 'disabled'} successfully!`);
-    } catch (err: any) {
-      alert("Failed to update tax setting: " + err.message);
-    } finally {
-      setIsUpdatingSettings(false);
-    }
-  };
 
   const handlePushNotification = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -594,9 +578,6 @@ export default function SellerDashboard() {
     }
     if (activeTab === 'coupons' && user?.id && selectedOutletId) {
       fetchCoupons();
-    }
-    if (user?.user_metadata) {
-      setTaxEnabled(user.user_metadata.tax_enabled ?? false);
     }
 
     // 1. High-Reliability Realtime Subscription for Orders
@@ -696,9 +677,6 @@ export default function SellerDashboard() {
           </button>
           <button className={`${styles.navBtn} ${activeTab === 'notifications' ? styles.active : ''}`} onClick={() => setActiveTab('notifications')}>
             Notification Pusher
-          </button>
-          <button className={`${styles.navBtn} ${activeTab === 'settings' ? styles.active : ''}`} onClick={() => setActiveTab('settings')}>
-            Settings
           </button>
         </nav>
       </aside>

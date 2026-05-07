@@ -181,8 +181,7 @@ export default function CartPage() {
   };
 
   const subtotal = cartTotal;
-  const tax = (subtotal - discountAmount) * 0.05; // Tax on discounted amount
-  const total = (subtotal - discountAmount) + tax;
+  const total = subtotal - discountAmount;
 
   return (
     <div className={styles.container}>
@@ -323,10 +322,6 @@ export default function CartPage() {
             <div className={styles.billRow}>
               <span>Item Total</span>
               <span>₹{subtotal.toFixed(2)}</span>
-            </div>
-            <div className={styles.billRow}>
-              <span>Taxes & Charges</span>
-              <span>₹{tax.toFixed(2)}</span>
             </div>
 
             {discountAmount > 0 && (
