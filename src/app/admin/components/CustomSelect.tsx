@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import styles from '../page.module.css';
 
-export function CustomSelect({ options, value, onChange, label, styles }: { 
+export function CustomSelect({ options, value, onChange, label }: { 
   options: any[], 
   value: string, 
   onChange: (val: string) => void, 
-  label: string,
-  styles: any
+  label: string
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

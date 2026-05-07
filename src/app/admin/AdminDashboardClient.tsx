@@ -12,34 +12,24 @@ import { RoleDropdown } from './components/RoleDropdown';
 import { CustomSelect } from './components/CustomSelect';
 import { StaffAssignmentDropdown } from './components/StaffAssignmentDropdown';
 
-const MOCK_CHART_DATA = [
-  { date: '01 May', revenue: 4500, orders: 12 },
-  { date: '02 May', revenue: 5200, orders: 15 },
-  { date: '03 May', revenue: 3800, orders: 10 },
-  { date: '04 May', revenue: 6100, orders: 18 },
-  { date: '05 May', revenue: 7500, orders: 22 },
-  { date: '06 May', revenue: 5900, orders: 16 },
-  { date: '07 May', revenue: 8200, orders: 25 },
-];
-
-const MOCK_USERS = [
-  { id: 'USR-001', name: 'Test User', email: 'test@example.com', role: 'user', joined: '12 Jan 2026', status: 'active' },
-  { id: 'USR-002', name: 'Grill 6 Outlet', email: 'seller@grill6.com', role: 'seller', joined: '10 Jan 2026', status: 'active' },
-  { id: 'USR-003', name: 'Admin', email: 'admin@grill6.com', role: 'admin', joined: '1 Jan 2026', status: 'active' },
-];
-
-// Charts still need dynamic import for SSR stability
-const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
-const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), { ssr: false });
-const Area = dynamic(() => import('recharts').then(mod => mod.Area), { ssr: false });
-const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
-const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
-const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
-const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
-const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
-const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+import { AdminAnalyticsCharts } from './components/AdminAnalyticsCharts';
 
 export default function AdminDashboard() {
+  const MOCK_CHART_DATA = [
+    { date: '01 May', revenue: 4500, orders: 12 },
+    { date: '02 May', revenue: 5200, orders: 15 },
+    { date: '03 May', revenue: 3800, orders: 10 },
+    { date: '04 May', revenue: 6100, orders: 18 },
+    { date: '05 May', revenue: 7500, orders: 22 },
+    { date: '06 May', revenue: 5900, orders: 16 },
+    { date: '07 May', revenue: 8200, orders: 25 },
+  ];
+
+  const MOCK_USERS = [
+    { id: 'USR-001', name: 'Test User', email: 'test@example.com', role: 'user', joined: '12 Jan 2026', status: 'active' },
+    { id: 'USR-002', name: 'Grill 6 Outlet', email: 'seller@grill6.com', role: 'seller', joined: '10 Jan 2026', status: 'active' },
+    { id: 'USR-003', name: 'Admin', email: 'admin@grill6.com', role: 'admin', joined: '1 Jan 2026', status: 'active' },
+  ];
   const { user, userRole, isLoggedIn } = useCart();
   const [activeTab, setActiveTab] = useState('users');
 
@@ -666,7 +656,7 @@ export default function AdminDashboard() {
                       <td><strong>{u.first_name} {u.last_name}</strong></td>
                       <td>{u.email}</td>
                       <td>
-                        <RoleDropdown userId={u.id} currentRole={u.role} onRoleChange={handleRoleChange} styles={styles} />
+                        <RoleDropdown userId={u.id} currentRole={u.role} onRoleChange={handleRoleChange} />
                       </td>
                       <td>{new Date(u.created_at).toLocaleDateString()}</td>
                       <td>
@@ -901,12 +891,11 @@ export default function AdminDashboard() {
                     </div>
                     
                     <div className={styles.assignRow}>
-                      <StaffAssignmentDropdown 
-                        sellers={usersList.filter(u => u.role === 'seller')}
-                        onAssign={(uid) => handleAssignSeller(outlet.id, uid)}
-                        disabled={isAssigning}
-                        styles={styles}
-                      />
+                        <StaffAssignmentDropdown 
+                          sellers={usersList.filter(u => u.role === 'seller')}
+                          onAssign={(uid) => handleAssignSeller(outlet.id, uid)}
+                          disabled={isAssigning}
+                        />
                     </div>
                   </div>
 
@@ -993,48 +982,10 @@ export default function AdminDashboard() {
               <div className={styles.chartCard}>
                 <div className={styles.chartHeader}>
                   <h4>Revenue Growth (INR)</h4>
-                  <p>Daily platform earnings trend</p>
-                </div>
-                <div className={styles.chartBody}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3c8dbc" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#3c8dbc" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} tickFormatter={(value) => `₹${value}`} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#f8fafc' }}
-                        itemStyle={{ color: '#3c8dbc' }}
-                      />
-                      <Area type="monotone" dataKey="revenue" stroke="#3c8dbc" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className={styles.chartCard}>
-                <div className={styles.chartHeader}>
-                  <h4>Order Frequency</h4>
-                  <p>Daily order volume distribution</p>
-                </div>
-                <div className={styles.chartBody}>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fill: '#94a3b8'}} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', color: '#f8fafc' }}
-                        cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                      />
-                      <Bar dataKey="orders" fill="#22c55e" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <AdminAnalyticsCharts 
+                    chartData={chartData}
+                    outletBreakdown={outletBreakdown}
+                  />
                 </div>
               </div>
             </div>
@@ -1156,7 +1107,6 @@ export default function AdminDashboard() {
                     { value: 'percentage', label: 'Percentage (%)' },
                     { value: 'flat', label: 'Flat Amount (₹)' }
                   ]}
-                  styles={styles}
                 />
                 <div className={styles.formGroup}>
                   <label>Value</label>
@@ -1189,7 +1139,6 @@ export default function AdminDashboard() {
                     { value: 'all', label: 'All Users (Global)' },
                     { value: 'particular', label: 'Particular User (by ID)' }
                   ]}
-                  styles={styles}
                 />
                 <CustomSelect 
                   label="Promotion Scope"
@@ -1199,7 +1148,6 @@ export default function AdminDashboard() {
                     { value: 'all', label: 'Platform-Wide (Global)' },
                     ...outlets.map(o => ({ value: o.id, label: o.name }))
                   ]}
-                  styles={styles}
                 />
               </div>
               {newCoupon.target_type === 'particular' && (

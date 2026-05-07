@@ -3,12 +3,12 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
+import styles from '../page.module.css';
 
-export function RoleDropdown({ userId, currentRole, onRoleChange, styles }: { 
+export function RoleDropdown({ userId, currentRole, onRoleChange }: { 
   userId: string, 
   currentRole: string, 
-  onRoleChange: (uid: string, role: string) => void,
-  styles: any
+  onRoleChange: (uid: string, role: string) => void
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0, width: 0 });

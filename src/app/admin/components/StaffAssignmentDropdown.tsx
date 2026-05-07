@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import styles from '../page.module.css';
 
-export function StaffAssignmentDropdown({ sellers, onAssign, disabled, styles }: { 
+export function StaffAssignmentDropdown({ sellers, onAssign, disabled }: { 
   sellers: any[], 
   onAssign: (uid: string) => void, 
-  disabled?: boolean,
-  styles: any
+  disabled?: boolean
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
