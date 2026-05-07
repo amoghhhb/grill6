@@ -449,6 +449,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         isMfaVerified,
         setIsMfaVerified,
         mfaPolicy,
+        selectedOutlet,
         setSelectedOutlet,
         isHydrated,
         logout: async () => {
