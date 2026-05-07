@@ -168,6 +168,60 @@ export default function CartPage() {
 
       if (itemsError) throw itemsError;
 
+      // 4. Send Email Invoice
+      try {
+        const emailHtml = `
+          <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #FF7E00; text-align: center;">GRILL 6 - ORDER CONFIRMED</h2>
+            <p>Hi ${user.user_metadata?.full_name || 'Customer'},</p>
+            <p>Thank you for ordering with Grill 6! Your order has been placed successfully.</p>
+            <hr style="border: none; border-top: 1px solid #eee;" />
+            <div style="margin: 20px 0;">
+              <p><strong>Order ID:</strong> ${finalOrderId}</p>
+              <p><strong>Outlet:</strong> ${selectedOutlet?.name}</p>
+              <p><strong>Order Type:</strong> ${orderType?.toUpperCase()}</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <thead>
+                <tr style="background: #f9f9f9;">
+                  <th style="text-align: left; padding: 10px; border-bottom: 1px solid #eee;">Item</th>
+                  <th style="text-align: center; padding: 10px; border-bottom: 1px solid #eee;">Qty</th>
+                  <th style="text-align: right; padding: 10px; border-bottom: 1px solid #eee;">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${items.map(item => `
+                  <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div style="text-align: right; font-size: 1.2rem; font-weight: bold; margin-top: 20px;">
+              Total Amount: ₹${total.toFixed(2)}
+            </div>
+            <div style="text-align: center; margin-top: 40px; color: #888; font-size: 0.8rem;">
+              <p>Grill 6 - Savor the Grill Experience</p>
+              <p>This is an automated invoice, please do not reply.</p>
+            </div>
+          </div>
+        `;
+
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: user.email,
+            subject: `Your Grill 6 Invoice - Order #${finalOrderId}`,
+            html: emailHtml
+          })
+        });
+      } catch (emailErr) {
+        console.error("Failed to send invoice email:", emailErr);
+      }
+
       // 5. Success UI
       // 5. Success - Redirect to tracking page and clear session selection
       clearCart();

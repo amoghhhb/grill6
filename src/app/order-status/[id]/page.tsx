@@ -249,7 +249,22 @@ export default function OrderStatusPage() {
 
         <div className={styles.actions}>
           <p className={styles.helpText}>Need help? Please visit the outlet counter.</p>
-          <button onClick={() => router.push('/menu')} className={styles.secondaryBtn}>Order More Food</button>
+          <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+            <button 
+              onClick={() => router.push(`/invoice/${order.id}`)} 
+              className={styles.primaryBtn}
+              style={{ flex: 1 }}
+            >
+              📄 View Invoice
+            </button>
+            <button 
+              onClick={() => router.push('/menu')} 
+              className={styles.secondaryBtn}
+              style={{ flex: 1 }}
+            >
+              Order More Food
+            </button>
+          </div>
         </div>
       </div>
     </div>
