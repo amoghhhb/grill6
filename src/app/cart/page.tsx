@@ -163,7 +163,7 @@ export default function CartPage() {
       // 3. Insert Order Items
       const orderItems = items.map(item => ({
         order_id: orderData.id,
-        item_name: item.name,
+        item_name: item.variant_name ? `${item.name} (${item.variant_name})` : item.name,
         quantity: item.quantity,
         price: item.price
       }));
@@ -206,7 +206,9 @@ export default function CartPage() {
               <tbody>
                 ${items.map(item => `
                   <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                      ${item.name}${item.variant_name ? `<br/><small style="color: #666;">Option: ${item.variant_name}</small>` : ''}
+                    </td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₹${(item.price * item.quantity).toFixed(2)}</td>
                   </tr>
@@ -275,17 +277,22 @@ export default function CartPage() {
           ) : (
             <div className={styles.items}>
               {items.map(item => (
-                <div key={item.id} className={styles.cartItem}>
+                <div key={item.id + (item.variant_id || '')} className={styles.cartItem}>
                   <div className={styles.itemInfo}>
                     <div className={item.isVeg ? styles.vegBadge : styles.nonVegBadge}></div>
-                    <span className={styles.itemName}>{item.name}</span>
+                    <div>
+                      <span className={styles.itemName}>{item.name}</span>
+                      {item.variant_name && (
+                        <div className={styles.variantBadge}>{item.variant_name}</div>
+                      )}
+                    </div>
                   </div>
 
                   <div className={styles.itemControls}>
                     <div className={styles.quantityControl}>
-                      <button onClick={() => updateQuantity(item.id, -1)} className={styles.qBtn}>-</button>
+                      <button onClick={() => updateQuantity(item.id, -1, item.variant_id)} className={styles.qBtn}>-</button>
                       <span className={styles.qNum}>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className={styles.qBtn} disabled={item.quantity >= 10}>+</button>
+                      <button onClick={() => updateQuantity(item.id, 1, item.variant_id)} className={styles.qBtn} disabled={item.quantity >= 10}>+</button>
                     </div>
                     <span className={styles.itemTotal}>₹{item.price * item.quantity}</span>
                   </div>

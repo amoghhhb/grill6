@@ -104,6 +104,22 @@ export default function SellerDashboard() {
     is_veg: true,
     image_url: ''
   });
+  const [hasVariants, setHasVariants] = useState(false);
+  const [variants, setVariants] = useState<{variant_name: string, price: string}[]>([]);
+
+  const addVariant = () => {
+    setVariants([...variants, { variant_name: '', price: '' }]);
+  };
+
+  const removeVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
+  };
+
+  const updateVariant = (index: number, field: 'variant_name' | 'price', value: string) => {
+    const newVariants = [...variants];
+    newVariants[index][field] = value;
+    setVariants(newVariants);
+  };
 
   const [coupons, setCoupons] = useState<any[]>([]);
   const [showCouponModal, setShowCouponModal] = useState(false);
@@ -405,7 +421,7 @@ export default function SellerDashboard() {
     setIsLoadingMenu(true);
     const { data, error } = await supabase
       .from('menu_items')
-      .select('*')
+      .select('*, menu_item_variants(*)')
       .eq('outlet_id', selectedOutletId)
       .order('created_at', { ascending: false });
     
@@ -417,22 +433,48 @@ export default function SellerDashboard() {
     e.preventDefault();
     if (!user?.id) return;
 
-    const { error } = await supabase
+    // 1. Insert the main dish
+    const { data: mainDish, error: dishError } = await supabase
       .from('menu_items')
       .insert([{
         ...newDish,
-        price: parseFloat(newDish.price),
+        price: hasVariants ? 0 : parseFloat(newDish.price), // Base price 0 if variants exist
         seller_id: user.id,
         outlet_id: selectedOutletId
-      }]);
+      }])
+      .select()
+      .single();
 
-    if (!error) {
-      setShowAddModal(false);
-      setNewDish({ name: '', description: '', price: '', category: 'Starters', is_veg: true, image_url: '' });
-      fetchMenu();
-    } else {
-      alert(error.message);
+    if (dishError) {
+      alert(dishError.message);
+      return;
     }
+
+    // 2. Insert variants if any
+    if (hasVariants && variants.length > 0) {
+      const variantsToInsert = variants.map(v => ({
+        menu_item_id: mainDish.id,
+        variant_name: v.variant_name,
+        price: parseFloat(v.price)
+      }));
+
+      const { error: variantError } = await supabase
+        .from('menu_item_variants')
+        .insert(variantsToInsert);
+
+      if (variantError) {
+        alert("Dish saved but variants failed: " + variantError.message);
+      }
+    }
+
+    setShowAddModal(false);
+    setNewDish({ name: '', description: '', price: '', category: 'Starters', is_veg: true, image_url: '' });
+    setHasVariants(false);
+    setVariants([]);
+    fetchMenu();
+    setToastMessage("✅ Dish added successfully!");
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1307,17 +1349,19 @@ export default function SellerDashboard() {
                   />
                 </div>
                 <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label>Price (₹)</label>
-                    <input 
-                      type="number" 
-                      required 
-                      placeholder="250" 
-                      className={styles.input}
-                      value={newDish.price}
-                      onChange={e => setNewDish({...newDish, price: e.target.value})}
-                    />
-                  </div>
+                  {!hasVariants && (
+                    <div className={styles.formGroup}>
+                      <label>Price (₹)</label>
+                      <input 
+                        type="number" 
+                        required 
+                        placeholder="250" 
+                        className={styles.input}
+                        value={newDish.price}
+                        onChange={e => setNewDish({...newDish, price: e.target.value})}
+                      />
+                    </div>
+                  )}
                   <CustomSelect 
                       options={categories.length > 0 
                         ? categories.map(c => ({ label: c.name, value: c.name }))
@@ -1334,26 +1378,54 @@ export default function SellerDashboard() {
                     />
                 </div>
                 <div className={styles.formGroup}>
-                  <label>Type</label>
-                  <div className={styles.radioGroup}>
-                    <label className={styles.radioLabel}>
-                      <input 
-                        type="radio" 
-                        name="type" 
-                        checked={newDish.is_veg} 
-                        onChange={() => setNewDish({...newDish, is_veg: true})}
-                      /> <span>Veg</span>
-                    </label>
-                    <label className={styles.radioLabel}>
-                      <input 
-                        type="radio" 
-                        name="type" 
-                        checked={!newDish.is_veg} 
-                        onChange={() => setNewDish({...newDish, is_veg: false})}
-                      /> <span>Non-Veg</span>
-                    </label>
-                  </div>
+                  <label className={styles.checkboxLabel} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={hasVariants} 
+                      onChange={(e) => setHasVariants(e.target.checked)} 
+                    />
+                    <span>This dish has multiple sizes/options</span>
+                  </label>
                 </div>
+
+                {hasVariants && (
+                  <div className={styles.variantsBuilder}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <label style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--accent)' }}>OPTIONS & PRICING</label>
+                      <button type="button" onClick={addVariant} className={styles.addVariantBtn}>+ Add Option</button>
+                    </div>
+                    {variants.map((v, idx) => (
+                      <div key={idx} className={styles.variantRow}>
+                        <input 
+                          type="text" 
+                          placeholder="Size/Option Name" 
+                          className={styles.input}
+                          value={v.variant_name}
+                          onChange={(e) => updateVariant(idx, 'variant_name', e.target.value)}
+                          required
+                        />
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <span style={{ color: 'var(--accent)', fontWeight: '600' }}>₹</span>
+                          <input 
+                            type="number" 
+                            placeholder="Price" 
+                            className={styles.input}
+                            style={{ width: '100px' }}
+                            value={v.price}
+                            onChange={(e) => updateVariant(idx, 'price', e.target.value)}
+                            required
+                          />
+                          <button type="button" onClick={() => removeVariant(idx)} className={styles.removeVariantBtn}>🗑️</button>
+                        </div>
+                      </div>
+                    ))}
+                    {variants.length === 0 && (
+                      <p style={{ textAlign: 'center', color: 'var(--accent)', fontSize: '0.85rem', padding: '1rem', background: 'rgba(0,0,0,0.02)', borderRadius: 'var(--radius-sm)' }}>
+                        No options added yet. Click "+ Add Option" to start.
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className={styles.formGroup}>
                   <label>Description</label>
                   <textarea 

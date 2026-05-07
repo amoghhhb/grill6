@@ -6,6 +6,7 @@ export interface MenuItem {
   category: string;
   image?: string;
   description?: string;
+  variants?: { id: string, variant_name: string, price: number }[];
 }
 
 export const MOCK_CATEGORIES = ['Recommended', 'Starters', 'Main Course', 'Breads', 'Desserts'];

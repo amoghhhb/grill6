@@ -28,13 +28,15 @@ export interface Outlet {
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  variant_id?: string;
+  variant_name?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: MenuItem) => void;
-  removeFromCart: (itemId: string) => void;
-  updateQuantity: (itemId: string, delta: number) => void;
+  addToCart: (item: MenuItem, variant?: { id: string, name: string, price: number }) => void;
+  removeFromCart: (itemId: string, variantId?: string) => void;
+  updateQuantity: (itemId: string, delta: number, variantId?: string) => void;
   clearCart: () => void;
   cartTotal: number;
   itemCount: number;
@@ -373,41 +375,46 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     else localStorage.removeItem('user_lat_lng');
   }, [userLocation]);
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, variant?: { id: string, name: string, price: number }) => {
     setCart((prev) => {
-      const existing = prev.find((cartItem) => cartItem.id === item.id);
+      const vId = variant?.id;
+      const existing = prev.find((cartItem) => cartItem.id === item.id && cartItem.variant_id === vId);
+      
       if (existing) {
-        // Limit max quantity to 10
         if (existing.quantity >= 10) return prev;
         return prev.map((cartItem) =>
-          cartItem.id === item.id
+          (cartItem.id === item.id && cartItem.variant_id === vId)
             ? { ...cartItem, quantity: cartItem.quantity + 1 }
             : cartItem
         );
       }
-      return [...prev, { ...item, quantity: 1 }];
+      
+      const price = variant ? variant.price : item.price;
+      return [...prev, { 
+        ...item, 
+        price, 
+        variant_id: vId, 
+        variant_name: variant?.name, 
+        quantity: 1 
+      }];
     });
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCart((prev) => prev.filter((item) => item.id !== itemId));
+  const removeFromCart = (itemId: string, variantId?: string) => {
+    setCart((prev) => prev.filter((item) => !(item.id === itemId && item.variant_id === variantId)));
   };
 
-  const updateQuantity = (itemId: string, delta: number) => {
+  const updateQuantity = (itemId: string, delta: number, variantId?: string) => {
     setCart((prev) =>
       prev.map((item) => {
-        if (item.id === itemId) {
+        if (item.id === itemId && item.variant_id === variantId) {
           const newQuantity = item.quantity + delta;
-          if (newQuantity <= 0) {
-            // Handled differently: Usually we just let it drop to 0 and UI removes it, 
-            // but returning 0 is safe, caller should call removeFromCart if 0 is reached.
-            return { ...item, quantity: 0 };
-          }
-          if (newQuantity > 10) return item; // Max 10
+          if (newQuantity <= 0) return { ...item, quantity: 0 };
+          if (newQuantity > 10) return item;
           return { ...item, quantity: newQuantity };
         }
         return item;
-      }).filter(item => item.quantity > 0) // Automatically remove items with 0 quantity
+      }).filter(item => item.quantity > 0)
     );
   };
 

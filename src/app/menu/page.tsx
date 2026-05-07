@@ -54,6 +54,15 @@ function MenuContent() {
   const [activeCategory, setActiveCategory] = useState('Recommended');
   const { cart, addToCart, updateQuantity, orderType, isOutletOpen, selectedOutlet, isHydrated, setOrderType, clearCart } = useCart();
   const [modalDismissed, setModalDismissed] = useState(false);
+  const [variantModalItem, setVariantModalItem] = useState<MenuItem | null>(null);
+
+  const handleAddItem = (item: MenuItem) => {
+    if (item.variants && item.variants.length > 0) {
+      setVariantModalItem(item);
+    } else {
+      addToCart(item);
+    }
+  };
 
   const handleChangeOutlet = () => {
     if (cart.length > 0) {
@@ -74,7 +83,7 @@ function MenuContent() {
         setIsLoading(true);
         let query = supabase
           .from('menu_items')
-          .select('*')
+          .select('*, menu_item_variants(*)')
           .eq('is_available', true);
         
         if (selectedOutlet) {
@@ -93,7 +102,12 @@ function MenuContent() {
             isVeg: item.is_veg,
             category: item.category,
             image: item.image_url,
-            description: item.description
+            description: item.description,
+            variants: item.menu_item_variants?.map((v: any) => ({
+              id: v.id,
+              variant_name: v.variant_name,
+              price: v.price
+            }))
           }));
           setMenuItems(mappedItems);
 
@@ -234,8 +248,11 @@ function MenuContent() {
                     <div className={styles.cardActions} style={{ height: '54px', display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end' }}>
                       <AnimatePresence mode="wait">
                         {(() => {
-                          const cartItem = cart.find(c => c.id === item.id);
-                          if (cartItem) {
+                          const cartItems = cart.filter(c => c.id === item.id);
+                          const totalQuantity = cartItems.reduce((acc, c) => acc + c.quantity, 0);
+                          const hasVariants = item.variants && item.variants.length > 0;
+
+                          if (totalQuantity > 0 && !hasVariants) {
                             return (
                               <motion.div 
                                 key="quantity"
@@ -246,8 +263,8 @@ function MenuContent() {
                                 className={`${styles.quantityControl} ${!isOutletOpen ? styles.disabledActions : ''}`}
                               >
                                 <button onClick={() => updateQuantity(item.id, -1)} disabled={!isOutletOpen}>-</button>
-                                <AnimatedQuantity quantity={cartItem.quantity} />
-                                <button onClick={() => updateQuantity(item.id, 1)} disabled={cartItem.quantity >= 10 || !isOutletOpen}>+</button>
+                                <AnimatedQuantity quantity={totalQuantity} />
+                                <button onClick={() => updateQuantity(item.id, 1)} disabled={totalQuantity >= 10 || !isOutletOpen}>+</button>
                               </motion.div>
                             );
                           }
@@ -259,10 +276,10 @@ function MenuContent() {
                               exit={{ opacity: 0, scale: 0.85 }}
                               transition={{ type: "tween", duration: 0.15, ease: "easeOut" }}
                               className={`${styles.addBtn} ${!isOutletOpen ? styles.disabledBtn : ''}`} 
-                              onClick={() => isOutletOpen && addToCart(item)}
+                              onClick={() => isOutletOpen && handleAddItem(item)}
                               disabled={!isOutletOpen}
                             >
-                              {isOutletOpen ? 'ADD' : 'CLOSED'}
+                              {isOutletOpen ? (totalQuantity > 0 ? `ADD +${totalQuantity}` : 'ADD') : 'CLOSED'}
                             </motion.button>
                           );
                         })()}
@@ -279,6 +296,56 @@ function MenuContent() {
           </motion.div>
         </main>
       </div>
+      <AnimatePresence>
+        {variantModalItem && (
+          <div className={styles.modalOverlay} onClick={() => setVariantModalItem(null)}>
+            <motion.div 
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className={styles.variantModal}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className={styles.variantHeader}>
+                <div>
+                  <h3>Select Options</h3>
+                  <p>{variantModalItem.name}</p>
+                </div>
+                <button className={styles.closeBtn} onClick={() => setVariantModalItem(null)}>✕</button>
+              </div>
+              
+              <div className={styles.variantList}>
+                {variantModalItem.variants?.map(v => {
+                  const cartItem = cart.find(c => c.id === variantModalItem.id && c.variant_id === v.id);
+                  return (
+                    <div key={v.id} className={styles.variantItem}>
+                      <div className={styles.variantInfo}>
+                        <span className={styles.variantName}>{v.variant_name}</span>
+                        <span className={styles.variantPrice}>₹{v.price}</span>
+                      </div>
+                      
+                      {cartItem ? (
+                        <div className={styles.variantQuantity}>
+                          <button onClick={() => updateQuantity(variantModalItem.id, -1, v.id)}>-</button>
+                          <span>{cartItem.quantity}</span>
+                          <button onClick={() => updateQuantity(variantModalItem.id, 1, v.id)} disabled={cartItem.quantity >= 10}>+</button>
+                        </div>
+                      ) : (
+                        <button 
+                          className={styles.variantAddBtn}
+                          onClick={() => addToCart(variantModalItem, { id: v.id, name: v.variant_name, price: v.price })}
+                        >
+                          ADD
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
     </>
   );
