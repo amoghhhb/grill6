@@ -1086,17 +1086,29 @@ export default function AdminDashboard() {
               <button className={styles.closeBtn} onClick={() => setShowCouponModal(false)}>×</button>
             </div>
             <form onSubmit={handleAddCoupon} className={styles.modalForm}>
-              <div className={styles.formGroup}>
-                <label>Coupon Code (e.g. SUMMER50)</label>
-                <input 
-                  type="text" 
-                  className={styles.input}
-                  value={newCoupon.code} 
-                  onChange={e => setNewCoupon({...newCoupon, code: e.target.value.toUpperCase()})}
-                  required 
-                  placeholder="MEGAOFFER"
-                  style={{ textTransform: 'uppercase' }}
-                />
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Coupon Code (e.g. SUMMER50)</label>
+                  <input 
+                    type="text" 
+                    className={styles.input}
+                    value={newCoupon.code} 
+                    onChange={e => setNewCoupon({...newCoupon, code: e.target.value.toUpperCase()})}
+                    required 
+                    placeholder="MEGAOFFER"
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Min. Order Value (₹)</label>
+                  <input 
+                    type="number" 
+                    className={styles.input}
+                    value={newCoupon.min_order} 
+                    onChange={e => setNewCoupon({...newCoupon, min_order: e.target.value})}
+                    placeholder="0"
+                  />
+                </div>
               </div>
               <div className={styles.formGrid}>
                 <CustomSelect 
@@ -1119,16 +1131,6 @@ export default function AdminDashboard() {
                     placeholder="10"
                   />
                 </div>
-              </div>
-              <div className={styles.formGroup}>
-                <label>Minimum Order Value (₹)</label>
-                <input 
-                  type="number" 
-                  className={styles.input}
-                  value={newCoupon.min_order} 
-                  onChange={e => setNewCoupon({...newCoupon, min_order: e.target.value})}
-                  placeholder="0"
-                />
               </div>
               <div className={styles.formGrid}>
                 <CustomSelect 
