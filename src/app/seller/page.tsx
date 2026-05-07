@@ -709,17 +709,33 @@ export default function SellerDashboard() {
                           >
                             <span className={styles.btnIcon}>✉️</span> Email
                           </button>
-                          <select 
-                            className={styles.actionSelect} 
-                            value={order.status}
-                            onChange={(e) => handleStatusChange(order.id, e.target.value)}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="preparing">Preparing</option>
-                            <option value="ready">Ready</option>
-                            <option value="completed">Completed</option>
-                            <option value="cancelled">Cancelled</option>
-                          </select>
+                          {order.status === 'pending' ? (
+                            <div className={styles.orderActionButtons}>
+                              <button 
+                                className={styles.acceptBtn}
+                                onClick={() => handleStatusChange(order.id, 'preparing')}
+                              >
+                                Accept
+                              </button>
+                              <button 
+                                className={styles.declineBtn}
+                                onClick={() => handleStatusChange(order.id, 'cancelled')}
+                              >
+                                Decline
+                              </button>
+                            </div>
+                          ) : (
+                            <select 
+                              className={styles.actionSelect} 
+                              value={order.status}
+                              onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                            >
+                              <option value="preparing">Preparing</option>
+                              <option value="ready">Ready</option>
+                              <option value="completed">Completed</option>
+                              <option value="cancelled">Cancelled</option>
+                            </select>
+                          )}
                         </div>
                       </td>
                     </tr>

@@ -311,6 +311,44 @@
   cursor: pointer;
 }
 
+.orderActionButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.acceptBtn, .declineBtn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.acceptBtn {
+  background: var(--success);
+  color: white;
+  box-shadow: 0 2px 8px rgba(96, 178, 70, 0.3);
+}
+
+.acceptBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(96, 178, 70, 0.4);
+}
+
+.declineBtn {
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+}
+
+.declineBtn:hover {
+  background: #ef4444;
+  color: white;
+  transform: translateY(-2px);
+}
+
 .statsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
