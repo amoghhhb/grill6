@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import styles from './page.module.css';
 
@@ -10,6 +11,7 @@ import OrderTypeModal from '@/components/OrderTypeModal/OrderTypeModal';
 import { supabase } from '@/lib/supabase';
 
 export default function CartPage() {
+  const router = useRouter();
   const { cart: items, updateQuantity, cartTotal, orderType, userLocation, distance, user, isOutletOpen, selectedOutlet } = useCart();
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'cash'>('cash');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -167,10 +169,9 @@ export default function CartPage() {
       if (itemsError) throw itemsError;
 
       // 5. Success UI
-      setDailyNumber(nextDailyNum);
-      setOrderId(finalOrderId);
-      setOrderPlaced(true);
+      // 5. Success - Redirect to tracking page
       clearCart();
+      router.push(`/order-status/${orderData.id}`);
     } catch (err: any) {
       console.error("Order failed:", err);
       alert("Failed to place order: " + err.message);
@@ -362,39 +363,6 @@ export default function CartPage() {
             )}
           </div>
         </div>
-          </motion.div>
-        ) : (
-          <motion.div 
-            key="success-view"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={styles.successScreen}
-          >
-            <div className={styles.successIcon}>✅</div>
-            <h2 className={styles.successTitle}>Order Placed Successfully!</h2>
-            
-            <div className={styles.orderNumberCard}>
-              <p className={styles.dailyLabel}>Your Daily Order Number</p>
-              <h1 className={styles.dailyNum}>#{dailyNumber}</h1>
-              <p className={styles.counterNote}>Please show this number at the counter for pickup/dine-in.</p>
-            </div>
-
-            <div className={styles.detailsCard}>
-              <div className={styles.detailRow}>
-                <span>Order ID (for invoice)</span>
-                <strong>{orderId}</strong>
-              </div>
-              <div className={styles.detailRow}>
-                <span>Payment Method</span>
-                <strong>Pay at Counter</strong>
-              </div>
-            </div>
-
-            <p className={styles.emailNote}>An invoice with Order ID {orderId} has been sent to your email.</p>
-
-            <button className={styles.backBtn} onClick={() => window.location.href = '/menu'}>
-              Back to Menu
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
