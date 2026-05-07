@@ -247,8 +247,10 @@
   display: block;
   font-weight: 700;
   margin-bottom: 0.5rem;
-  color: var(--foreground);
-  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .input, .textarea, .select {
@@ -527,7 +529,7 @@
   align-items: center; 
   justify-content: center;
   z-index: 1000;
-  padding: 2rem 1rem;
+  padding: 1rem;
 }
 
 .modalContent {
@@ -548,11 +550,12 @@
 
 .modalHeader {
   padding: 1.5rem 2rem;
-  background: #111; /* Admin dark theme */
+  background: #111;
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .modalHeader h2 {
