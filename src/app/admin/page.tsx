@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import EmailModal from '@/components/EmailModal/EmailModal';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
+import dynamic from 'next/dynamic';
 import { RoleDropdown } from './components/RoleDropdown';
 import { CustomSelect } from './components/CustomSelect';
 import { StaffAssignmentDropdown } from './components/StaffAssignmentDropdown';
