@@ -564,7 +564,7 @@ export default function SellerDashboard() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}/${Math.random()}.${fileExt}`;
-      const filePath = `${fileName}`; 
+      const filePath = `menu-items/${fileName}`; 
 
       const { error: uploadError } = await supabase.storage
         .from('grill6')
