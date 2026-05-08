@@ -145,6 +145,7 @@ export default function SellerDashboard() {
   // Editing States
   const [isEditingDish, setIsEditingDish] = useState(false);
   const [editingDishId, setEditingDishId] = useState<string | null>(null);
+  const [oldImageUrl, setOldImageUrl] = useState<string>('');
   const [isEditingCoupon, setIsEditingCoupon] = useState(false);
   const [editingCouponId, setEditingCouponId] = useState<string | null>(null);
   const [isEditingCategory, setIsEditingCategory] = useState(false);
@@ -463,6 +464,7 @@ export default function SellerDashboard() {
       is_veg: item.is_veg,
       image_url: item.image_url || ''
     });
+    setOldImageUrl(item.image_url || '');
     setHasVariants(item.variants && item.variants.length > 0);
     setVariants(item.variants || []);
     setIsEditingDish(true);
@@ -511,6 +513,19 @@ export default function SellerDashboard() {
           .eq('id', editingDishId);
         if (error) throw error;
         resultId = editingDishId;
+
+        // Cleanup: Delete old image from storage if it was replaced
+        if (oldImageUrl && oldImageUrl !== newDish.image_url && oldImageUrl.includes('/public/grill6/')) {
+          try {
+            const urlParts = oldImageUrl.split('/public/grill6/');
+            if (urlParts.length > 1) {
+              const filePath = urlParts[1];
+              await supabase.storage.from('grill6').remove([filePath]);
+            }
+          } catch (storageError) {
+            console.error("Error cleaning up old image:", storageError);
+          }
+        }
       } else {
         const { data, error } = await supabase
           .from('menu_items')
