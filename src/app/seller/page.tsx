@@ -461,7 +461,7 @@ export default function SellerDashboard() {
       price: item.price.toString(),
       category: item.category,
       is_veg: item.is_veg,
-      image_url: item.image || ''
+      image_url: item.image_url || ''
     });
     setHasVariants(item.variants && item.variants.length > 0);
     setVariants(item.variants || []);
@@ -496,7 +496,7 @@ export default function SellerDashboard() {
         price: hasVariants ? 0 : parseFloat(newDish.price),
         category: newDish.category,
         is_veg: newDish.is_veg,
-        image: newDish.image_url,
+        image_url: newDish.image_url,
         outlet_id: selectedOutletId,
         seller_id: user.id,
         is_available: true
