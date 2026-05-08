@@ -563,7 +563,7 @@ export default function SellerDashboard() {
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Math.random()}.${fileExt}`;
+      const fileName = `${selectedOutletId}/${Math.random()}.${fileExt}`;
       const filePath = `menu-items/${fileName}`; 
 
       const { error: uploadError } = await supabase.storage
