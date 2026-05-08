@@ -637,6 +637,9 @@ export default function SellerDashboard() {
         setToastMessage("🗑️ Dish and image deleted successfully!");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
+      } else {
+        console.error("Deletion failed:", error.message);
+        alert("Failed to delete dish: " + error.message + "\n\n(Note: You cannot delete dishes that have already been ordered by customers. Try marking it as 'Out of Stock' instead.)");
       }
     }
   };
