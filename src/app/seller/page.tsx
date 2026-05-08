@@ -594,10 +594,35 @@ export default function SellerDashboard() {
     if (!error) fetchMenu();
   };
 
-  const deleteDish = async (id: string) => {
-    if (confirm('Are you sure you want to delete this dish?')) {
-      const { error } = await supabase.from('menu_items').delete().eq('id', id);
-      if (!error) fetchMenu();
+  const deleteDish = async (item: any) => {
+    if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+      // Delete image from storage if it exists
+      if (item.image_url && item.image_url.includes('/public/grill6/')) {
+        try {
+          // Extract file path from URL (e.g., menu-items/OUTLET_ID/filename.png)
+          const urlParts = item.image_url.split('/public/grill6/');
+          if (urlParts.length > 1) {
+            const filePath = urlParts[1];
+            const { error: storageError } = await supabase.storage
+              .from('grill6')
+              .remove([filePath]);
+            
+            if (storageError) {
+              console.error("Error deleting image from storage:", storageError.message);
+            }
+          }
+        } catch (err) {
+          console.error("Storage deletion failed:", err);
+        }
+      }
+
+      const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
+      if (!error) {
+        fetchMenu();
+        setToastMessage("🗑️ Dish and image deleted successfully!");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      }
     }
   };
 
@@ -1062,7 +1087,7 @@ export default function SellerDashboard() {
                         <td>
                           <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <button className={styles.secondaryBtn} style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem' }} onClick={() => openEditDishModal(item)}>Edit</button>
-                            <button className={styles.dangerBtn} onClick={() => deleteDish(item.id)}>Delete</button>
+                            <button className={styles.dangerBtn} onClick={() => deleteDish(item)}>Delete</button>
                           </div>
                         </td>
                       </tr>
