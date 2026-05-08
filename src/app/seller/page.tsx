@@ -567,13 +567,13 @@ export default function SellerDashboard() {
       const filePath = `${fileName}`; 
 
       const { error: uploadError } = await supabase.storage
-        .from('menu-items')
+        .from('grill6')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('menu-items')
+        .from('grill6')
         .getPublicUrl(filePath);
 
       setNewDish({ ...newDish, image_url: publicUrl });
