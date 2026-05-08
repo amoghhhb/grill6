@@ -611,35 +611,36 @@ export default function SellerDashboard() {
 
   const deleteDish = async (item: any) => {
     if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
-      // Delete image from storage if it exists
-      if (item.image_url && item.image_url.includes('/public/grill6/')) {
-        try {
-          // Extract file path from URL (e.g., menu-items/OUTLET_ID/filename.png)
+      // Optimistic UI Update: Remove from local state immediately
+      const previousMenuItems = [...menuItems];
+      setMenuItems(prev => prev.filter(i => i.id !== item.id));
+
+      try {
+        // 1. Delete image from storage if it exists
+        if (item.image_url && item.image_url.includes('/public/grill6/')) {
           const urlParts = item.image_url.split('/public/grill6/');
           if (urlParts.length > 1) {
             const filePath = urlParts[1];
-            const { error: storageError } = await supabase.storage
-              .from('grill6')
-              .remove([filePath]);
-            
-            if (storageError) {
-              console.error("Error deleting image from storage:", storageError.message);
-            }
+            await supabase.storage.from('grill6').remove([filePath]);
           }
-        } catch (err) {
-          console.error("Storage deletion failed:", err);
         }
-      }
 
-      const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
-      if (!error) {
-        fetchMenu();
+        // 2. Delete from database
+        const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
+        
+        if (error) throw error;
+
         setToastMessage("🗑️ Dish and image deleted successfully!");
         setShowToast(true);
         setTimeout(() => setShowToast(false), 3000);
-      } else {
-        console.error("Deletion failed:", error.message);
-        alert("Failed to delete dish: " + error.message + "\n\n(Note: You cannot delete dishes that have already been ordered by customers. Try marking it as 'Out of Stock' instead.)");
+        
+        // Final sync
+        fetchMenu();
+      } catch (err: any) {
+        // Rollback on error
+        setMenuItems(previousMenuItems);
+        console.error("Deletion failed:", err.message);
+        alert("Failed to delete dish: " + err.message);
       }
     }
   };
